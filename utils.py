@@ -35,5 +35,6 @@ def time_clipping(data, today, time_begin, time_end):
         (df_time['created_at'] >= time_begin) &
         (df_time['created_at'] < time_end)
     ]
-    print(f'from [{time_begin}] to [{time_end}]')
+    print(f"{today.date()} {'-'.join([t.strftime('%H:%M') for t in [time_begin, time_end]])}\n#社畜丼トレンド")
+
     return df_ranged
