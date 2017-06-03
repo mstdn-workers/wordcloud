@@ -1,0 +1,9 @@
+[Unit]
+Description=Post a toot showing the trend of Local Timeline every hour.
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker run --rm mstdn-workers/wordcloud python wordcloud_auto.py post
+
+[Install]
+WantedBy=default.target
