@@ -8,12 +8,11 @@
 ```bash
 $ git clone https://github.com/mstdn-workers/wordcloud.git
 $ cd wordcloud
+$ docker build -t mstdn-workers/wordcloud .
 ```
 
-http://taku910.github.io/mecab/#download から、`mecab-0.996.tar.gz` と pythonバインディング をダウンロード
-
-```bash
-$ docker build -t mstdn-workers/wordcloud .
+### プログラムを見る・試す
+```
 $ docker run -d -p "8888:8888" -v "$PWD:/home/wordcloud/work/" mstdn-workers/wordcloud
 ```
 
