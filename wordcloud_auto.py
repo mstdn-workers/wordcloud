@@ -126,7 +126,7 @@ def toot2dict(toot):
 
 def filter_df(df):
     filter_suffix = [
-        '_info', '_infom', '_information',
+        '_info', '_infom', '_information', '_material',
     ]
     return df[
         ~df['username'].map(
