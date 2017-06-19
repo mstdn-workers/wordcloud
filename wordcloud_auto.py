@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -73,14 +74,6 @@ def create_wordcloud(text, background_image='background'):
                 dpi=200,
                 bbox_inches = 'tight',
                 pad_inches = 0)
-
-def get_current_toots():
-    return pd.read_csv(
-        "toot_data.current.tsv",
-        delimiter='\t',
-        header=None,
-        names=['created_at', 'username', 'userid', 'toot']
-    )
 
 def str2datetime(s):
     from datetime import datetime
@@ -174,5 +167,6 @@ wordlist = mecab_analysis(' '.join(toot_convert(filter_df(df_ranged)['toot']).il
 #返ってきたリストを結合してワードクラウドにする
 create_wordcloud(' '.join(wordlist))
 
-media_file = mastodon.media_post('/tmp/wordcloud.png')
-mastodon.status_post(status=toot_str, media_ids=[media_file])
+if ("post" in sys.argv):
+    media_file = mastodon.media_post('/tmp/wordcloud.png')
+    mastodon.status_post(status=toot_str, media_ids=[media_file])
