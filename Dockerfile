@@ -9,13 +9,12 @@ RUN echo 'APT::Default-Release "stable";' > /etc/apt/apt.conf.d/99target && \
         sudo font-manager fonts-noto fonts-noto-cjk/unstable fonts-ipafont -qq && \
     apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
+ADD packages.txt ./
 RUN pip install --upgrade pip && \
-  pip install jupyter \
-  pandas matplotlib scipy seaborn scikit-learn scikit-image \
-  sympy cython patsy numba bokeh Mastodon.py \
-  pivottablejs ipywidgets wordcloud mecab-python3 \
-  sqlalchemy emoji --upgrade && \
-    jupyter nbextension enable --py --sys-prefix widgetsnbextension
+    pip install -r packages.txt && \
+    pip install mecab-python3 && \
+    jupyter nbextension enable --py --sys-prefix widgetsnbextension && \
+    rm packages.txt
 
 RUN git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git /usr/src/mecab-ipadic-neologd && \
     /usr/src/mecab-ipadic-neologd/bin/install-mecab-ipadic-neologd -n -y -a
