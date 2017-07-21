@@ -9,12 +9,12 @@ RUN echo 'APT::Default-Release "stable";' > /etc/apt/apt.conf.d/99target && \
         sudo font-manager fonts-noto fonts-noto-cjk/unstable fonts-ipafont -qq && \
     apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
-ADD packages.txt ./
+ADD requirements.txt ./
 RUN pip install --upgrade pip && \
-    pip install -r packages.txt && \
+    pip install -r requirements.txt && \
     pip install mecab-python3 && \
     jupyter nbextension enable --py --sys-prefix widgetsnbextension && \
-    rm packages.txt
+    rm requirements.txt
 
 RUN git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git /usr/src/mecab-ipadic-neologd && \
     /usr/src/mecab-ipadic-neologd/bin/install-mecab-ipadic-neologd -n -y -a
