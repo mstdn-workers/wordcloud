@@ -8,7 +8,7 @@ from matplotlib.ticker import FormatStrFormatter
 
 from wordcloud import WordCloud, ImageColorGenerator
 from PIL import Image
-import MeCab as mc
+from natto import MeCab
 
 from mastodon import Mastodon
 
@@ -23,23 +23,19 @@ mastodon = Mastodon(
 
 def mecab_analysis(text):
     mecab_flags = [
-        '-Ochasen',
         '-d /usr/lib/mecab/dic/mecab-ipadic-neologd/',
         '-u username.dic',
     ]
-    t = mc.Tagger(' '.join(mecab_flags))
+    t = MeCab(' '.join(mecab_flags))
     enc_text = text.strip() # MeCabに渡した文字列は必ず変数に入れておく https://shogo82148.github.io/blog/2012/12/15/mecab-python/
     t.parse('') # UnicodeDecodeError対策 http://taka-say.hateblo.jp/entry/2015/06/24/183748 
-    node = t.parseToNode(enc_text)
+    # node = t.parseToNode(enc_text)
     output = []
-    while(node):
+    for node in t.parse(enc_text, as_nodes=True):
         if node.surface != "":  # ヘッダとフッタを除外
             word_type = node.feature.split(",")[0]
             if word_type in ["形容詞", "名詞", "副詞"]:
                 output.append(node.surface)
-        node = node.next
-        if node is None:
-            break
     return output
 
 def create_wordcloud(text, background_image='background'):
