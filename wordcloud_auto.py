@@ -1,3 +1,4 @@
+import os
 import sys
 import numpy as np
 import pandas as pd
@@ -12,14 +13,14 @@ from natto import MeCab
 
 from mastodon import Mastodon
 
-#Mastodon.create_app("D's toot trends App", api_base_url = "https://mstdn-workers.com", to_file = "my_clientcred_workers.txt")
-#mastodon = Mastodon(client_id="my_clientcred_workers.txt",api_base_url = "https://mstdn-workers.com")
-#mastodon.log_in("mail address", "passwd",to_file = "my_usercred_workers.txt")
-mastodon = Mastodon(
-    client_id="my_clientcred_workers.txt",
-    access_token="my_usercred_workers.txt",
-    api_base_url = "https://mstdn-workers.com"
-)
+mastodon_envs = {
+    'client_id': 'MASTODON_CLIENT_ID',
+    'client_secret': 'MASTODON_CLIENT_SECRET',
+    'access_token': 'MASTODON_ACCESS_TOKEN',
+    'api_base_url': 'MASTODON_API_BASE_URL',
+}
+mastodon_args = {k: os.environ[v] for k, v in mastodon_envs.items()}
+mastodon = Mastodon(**mastodon_args)
 
 def mecab_analysis(text):
     mecab_flags = [
