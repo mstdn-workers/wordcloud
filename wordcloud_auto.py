@@ -24,7 +24,7 @@ mastodon = Mastodon(**mastodon_args)
 
 def mecab_analysis(text):
     mecab_flags = [
-        '-d /usr/lib/mecab/dic/mecab-ipadic-neologd/',
+        '-d /app/.linuxbrew/lib/mecab/dic/mecab-ipadic-neologd',
         '-u username.dic',
     ]
     t = MeCab(' '.join(mecab_flags))
