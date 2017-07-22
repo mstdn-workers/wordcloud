@@ -44,7 +44,7 @@ def create_wordcloud(text, background_image='background'):
     # 環境に合わせてフォントのパスを指定する。
     #fpath = "/System/Library/Fonts/HelveticaNeue-UltraLight.otf"
     #fpath = "/Library/Fonts/ヒラギノ角ゴ Pro W3.otf"
-    fpath = "/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc"
+    fpath = "/app/.fonts/NotoSansCJKjp-Medium.otf"
 
     # ストップワードの設定
     stop_words = [ u'てる', u'いる', u'なる', u'れる', u'する', u'ある', u'こと', u'これ', u'さん', u'して', \
