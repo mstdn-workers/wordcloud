@@ -58,7 +58,8 @@ def create_wordcloud(text, background_image='background'):
     img_array = np.array(Image.open(background_image))
     image_colors = ImageColorGenerator(img_array)
     
-    wordcloud = WordCloud(background_color="white",
+    wordcloud = WordCloud(regexp=r"\w[\w']*",
+                          background_color="white",
                           font_path=fpath,
                           mask=img_array,
                           stopwords=set(stop_words),
@@ -164,6 +165,10 @@ toot_str = get_toot_str(today, *time_range)
 df_ranged = get_ranged_toots(*time_range)
 # 全トゥートを結合して形態素解析に流し込んで単語に分割する
 wordlist = mecab_analysis(' '.join(toot_convert(filter_df(df_ranged)['toot']).iloc[::-1].tolist()))
+
+import re
+#一文字ひらがな、カタカナを削除
+wordlist = [w for w in wordlist if not re.match('^[あ-んーア-ンーｱ-ﾝｰ]$', w)]
 #返ってきたリストを結合してワードクラウドにする
 create_wordcloud(' '.join(wordlist))
 
