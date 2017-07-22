@@ -1,7 +1,7 @@
 *.tar.gz
 *.db
 *.tsv
-*.csv
+*.dic
 
 # Created by https://www.gitignore.io/api/vim,macos,linux,emacs,python,windows
 
