@@ -138,6 +138,8 @@ def toot_convert(toots):
         lambda s: re.sub(r'https?://[^ ]+', "", s)
     ).map(
         lambda s: html.unescape(s)
+    ).map(
+        lambda s: re.sub(r"＿[人 ]+＿\s+＞([^＜]+)＜\s+￣(Y\^)+Y￣", r"\1", s)
     )
 
 from datetime import datetime, timedelta, date
