@@ -1,5 +1,4 @@
 Mastodon.py
-matplotlib
 natto-py
 numpy
 pandas
