@@ -1,10 +1,6 @@
 import sys
 import numpy as np
 import pandas as pd
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
 
 from wordcloud import WordCloud, ImageColorGenerator
 from PIL import Image
@@ -70,19 +66,13 @@ def create_wordcloud(text, background_image='background'):
                           background_color="white",
                           font_path=fpath,
                           mask=img_array,
+                          color_func=image_colors,
+                          scale=1.5,
                           stopwords=set(stop_words),
 #                          max_font_size=55, 
                          ).generate(text)
-
-    plt.imshow(wordcloud.recolor(color_func=image_colors), interpolation="bilinear")
-    plt.xticks([], [])
-    plt.yticks([], [])
-    plt.axis("off")
     
-    plt.savefig("/tmp/wordcloud.png", 
-                dpi=200,
-                bbox_inches = 'tight',
-                pad_inches = 0)
+    wordcloud.to_file("/tmp/wordcloud.png")
 
 def str2datetime(s):
     from datetime import datetime
