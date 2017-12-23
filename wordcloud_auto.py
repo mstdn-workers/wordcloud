@@ -34,7 +34,7 @@ def mecab_analysis(text):
                 output.append(node.surface)
     return output
 
-def create_wordcloud(text, background_image='background'):
+def create_wordcloud(text, background_image='background', slow_connection_mode=False):
 
     # 環境に合わせてフォントのパスを指定する。
     #fpath = "/System/Library/Fonts/HelveticaNeue-UltraLight.otf"
@@ -56,19 +56,29 @@ def create_wordcloud(text, background_image='background'):
     ]
     
     img_array = np.array(Image.open(background_image))
-    image_colors = ImageColorGenerator(img_array)
+    def black_color_func(word, font_size, position, orientation, random_state=None,
+                         **kwargs):
+        return "black"
     
     wordcloud = WordCloud(regexp=r"\w[\w']*",
                           background_color="white",
                           font_path=fpath,
                           mask=img_array,
-                          color_func=image_colors,
+                          color_func=black_color_func if slow_connection_mode else ImageColorGenerator(img_array),
                           scale=1.5,
                           stopwords=set(stop_words),
 #                          max_font_size=55, 
                          ).generate(text)
     
-    wordcloud.to_file("/tmp/wordcloud.png")
+    if slow_connection_mode:
+        (wordcloud.to_image()
+            .resize((400, 400), resample=Image.BOX)
+            .convert(mode="P", palette=Image.ADAPTIVE, colors=4)
+            .save('/tmp/wordcloud.png'))
+    else:
+        wordcloud.to_file("/tmp/wordcloud.png")
+    
+    return wordcloud
 
 def str2datetime(s):
     from datetime import datetime
@@ -162,12 +172,29 @@ df_ranged = get_ranged_toots(*time_range)
 # 全トゥートを結合して形態素解析に流し込んで単語に分割する
 wordlist = mecab_analysis(' '.join(toot_convert(filter_df(df_ranged)['toot']).iloc[::-1].tolist()))
 
+slow_connection_mode="slow" in sys.argv
+
 import re
 #一文字ひらがな、カタカナを削除
 wordlist = [w for w in wordlist if not re.match('^[あ-んーア-ンーｱ-ﾝｰ]$', w)]
 #返ってきたリストを結合してワードクラウドにする
-create_wordcloud(' '.join(wordlist))
+wordcloud = create_wordcloud(' '.join(wordlist), slow_connection_mode=slow_connection_mode)
 
 if ("post" in sys.argv):
     media_file = mastodon.media_post('/tmp/wordcloud.png')
-    mastodon.status_post(status=toot_str, media_ids=[media_file])
+    if slow_connection_mode:
+        from collections import Counter
+        word_times = Counter(wordlist)
+        mastodon.status_post(
+            spoiler_text=toot_str,
+            media_ids=[media_file],
+            status="\n".join(
+                ["#社畜丼トレンド 低速回線モード",
+                 f"{len(df_ranged)} の投稿を処理しました。",
+                 "出現回数の多かった単語は以下の通りです："] + [
+                    f'  "{word}": {cnt}' for word, cnt in (
+                        (item[0], word_times[item[0]])
+                        for item in sorted(wordcloud.words_.items(), key=lambda x:x[1], reverse=True)[:10])]
+            ))
+    else:
+        mastodon.status_post(status=toot_str, media_ids=[media_file])
