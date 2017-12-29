@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 
 from wordcloud import WordCloud, ImageColorGenerator
-from PIL import Image
 from natto import MeCab
 
 from mastodon import Mastodon
@@ -35,6 +34,7 @@ def mecab_analysis(text):
     return output
 
 def create_wordcloud(text, background_image='background', slow_connection_mode=False):
+    from PIL import Image
 
     # 環境に合わせてフォントのパスを指定する。
     #fpath = "/System/Library/Fonts/HelveticaNeue-UltraLight.otf"
