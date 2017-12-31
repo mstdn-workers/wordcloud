@@ -57,15 +57,18 @@ def create_wordcloud(text, background_image='background', slow_connection_mode=F
     ]
     
     img_array = np.array(Image.open(background_image))
-    def black_color_func(word, font_size, position, orientation, random_state=None,
-                         **kwargs):
-        return "black"
+    
+    pastel_colors = [f"hsl({hue}, 25%, 66%)" for hue in [0, 60, 120, 180]]
+    def pastel_color_func(word, font_size, position, orientation, random_state=None,
+                          **kwargs):
+        import random
+        return pastel_colors[random.randint(0, 3)]
     
     wordcloud = WordCloud(regexp=r"\w[\w']*",
                           background_color="white",
                           font_path=fpath,
                           mask=img_array,
-                          color_func=black_color_func if slow_connection_mode else ImageColorGenerator(img_array),
+                          color_func=pastel_color_func if slow_connection_mode else ImageColorGenerator(img_array),
                           scale=1.5,
                           stopwords=set(stop_words),
 #                          max_font_size=55, 
@@ -74,7 +77,7 @@ def create_wordcloud(text, background_image='background', slow_connection_mode=F
     if slow_connection_mode:
         (wordcloud.to_image()
             .resize((400, 400), resample=Image.BOX)
-            .convert(mode="P", palette=Image.ADAPTIVE, colors=4)
+            .convert(mode="P", palette=Image.ADAPTIVE, colors=8)
             .save('/tmp/wordcloud.png'))
     else:
         wordcloud.to_file("/tmp/wordcloud.png")
