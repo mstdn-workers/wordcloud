@@ -147,6 +147,8 @@ def toot_convert(toots):
         lambda s: html.unescape(s)
     ).map(
         lambda s: re.sub(r"＿[人 ]+＿\s*＞([^＜]+)＜\s*￣(Y\^)+Y￣", r"\1", s)
+    ).map(
+        lambda s: re.sub("　", "", s)
     )
 
 from datetime import datetime, timedelta, date
