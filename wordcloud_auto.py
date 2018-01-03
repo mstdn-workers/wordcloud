@@ -5,16 +5,7 @@ import pandas as pd
 from wordcloud import WordCloud, ImageColorGenerator
 from natto import MeCab
 
-from mastodon import Mastodon
-
-#Mastodon.create_app("D's toot trends App", api_base_url = "https://mstdn-workers.com", to_file = "my_clientcred_workers.txt")
-#mastodon = Mastodon(client_id="my_clientcred_workers.txt",api_base_url = "https://mstdn-workers.com")
-#mastodon.log_in("mail address", "passwd",to_file = "my_usercred_workers.txt")
-mastodon = Mastodon(
-    client_id="my_clientcred_workers.txt",
-    access_token="my_usercred_workers.txt",
-    api_base_url = "https://mstdn-workers.com"
-)
+import timeline
 
 def mecab_analysis(text):
     mecab_flags = [
@@ -83,47 +74,13 @@ def create_wordcloud(text, background_image='background', slow_connection_mode=F
     
     return wordcloud
 
-def str2datetime(s):
-    from datetime import datetime
-    import dateutil.parser
-    from pytz import timezone
-    return dateutil.parser.parse(s).astimezone(timezone('Asia/Tokyo'))
-
-def get_ranged_toots(time_begin, time_end):
-    tl_ = []
-    from time import sleep
-    max_id = None
-    running = True
-    while running:
-        tl = mastodon.timeline(
-            timeline='local',
-            max_id=max_id,
-            since_id=None,
-            limit=40)
-        max_id = tl[-1]['id']
-        for toot in tl:
-            created_at = str2datetime(toot['created_at'])
-            if created_at < time_begin:
-                running = False
-                break
-            if created_at >= time_end:
-                continue
-            tl_.append(toot2dict(toot))
-        if not running:
-            break
-        sleep(1.5)
-    df_ranged = pd.DataFrame.from_records(tl_)
-    return df_ranged
-
-def toot2dict(toot):
-    t = {}
-    t['id'] = toot['id']
-    t['created_at'] = toot['created_at']
-    t['username'] = toot['account']['username']
-    t['toot'] = toot['content']
-    if toot['spoiler_text'] != '':
-        t['toot'] = toot['spoiler_text']
-    return t
+def dictFromStatus(toot):
+    return dict(
+        id=toot['id'],
+        created_at=toot['created_at'],
+        username=toot['account']['username'],
+        toot=toot['content'] if toot['spoiler_text'] == '' else toot['spoiler_text']
+    )
 
 def filter_df(df):
     filter_suffix = [
@@ -173,7 +130,9 @@ def get_toot_str(today, time_begin, time_end):
 time_range = time_pair(today, *time_range)
 toot_str = get_toot_str(today, *time_range)
 
-df_ranged = get_ranged_toots(*time_range)
+df_ranged = pd.DataFrame.from_records(
+    [dictFromStatus(toot) for toot in timeline.with_time(*time_range)])
+
 # 全トゥートを結合して形態素解析に流し込んで単語に分割する
 wordlist = mecab_analysis(' '.join(toot_convert(filter_df(df_ranged)['toot']).iloc[::-1].tolist()))
 
@@ -186,13 +145,13 @@ wordlist = [w for w in wordlist if not re.match('^[あ-んーア-ンーｱ-ﾝ�
 wordcloud = create_wordcloud(' '.join(wordlist), slow_connection_mode=slow_connection_mode)
 
 if ("post" in sys.argv):
-    media_file = mastodon.media_post('/tmp/wordcloud.png')
+    wordcloud_img = '/tmp/wordcloud.png'
     if slow_connection_mode:
         from collections import Counter
         word_times = Counter(wordlist)
-        mastodon.status_post(
+        timeline.post(
             spoiler_text=toot_str,
-            media_ids=[media_file],
+            media_file=wordcloud_img,
             status="\n".join(
                 ["#社畜丼トレンド 低速回線モード",
                  f"{len(df_ranged)} の投稿を処理しました。",
@@ -202,4 +161,4 @@ if ("post" in sys.argv):
                         for item in sorted(wordcloud.words_.items(), key=lambda x:x[1], reverse=True)[:10])]
             ))
     else:
-        mastodon.status_post(status=toot_str, media_ids=[media_file])
+        timeline.post(status=toot_str, media_file=wordcloud_img)
