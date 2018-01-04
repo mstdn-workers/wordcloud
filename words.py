@@ -61,7 +61,7 @@ def wordlistFromStatuses(statuses):
     [dictFromStatus(s) for s in statuses])
 
     # 全トゥートを結合して形態素解析に流し込んで単語に分割する
-    wordlist = mecab_analysis(' '.join(toot_convert(filter_df(df_ranged)['toot']).iloc[::-1].tolist()))
+    wordlist = mecab_analysis(' '.join(toot_convert(filter_df(df_ranged)['toot']).tolist()))
     return wordlist
 
 def get_wordcloud_from_wordlist(wordlist, background_image='background', slow_connection_mode=False):
