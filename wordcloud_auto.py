@@ -5,6 +5,13 @@ import timeline
 from datetime import datetime, timedelta, date
 import pytz
 
+def time_pair(today, time_begin, time_end):
+    return [today+timedelta(hours=h) for h in [time_begin, time_end]]
+
+def get_toot_str(today, time_begin, time_end):
+    time_str = [t.strftime('%H:%M') for t in [time_begin, time_end]]
+    return f"{time_begin.date()} {'-'.join(time_str)}\n#社畜丼トレンド"
+
 jst = pytz.timezone('Asia/Tokyo')
 now = datetime.now(jst)
 today = now.date()
@@ -12,19 +19,14 @@ today = jst.localize(datetime(today.year, today.month, today.day))
 
 hour_end = now.timetuple().tm_hour
 time_range = [hour_end-1, hour_end]
-
-def time_pair(today, time_begin, time_end):
-    return [today+timedelta(hours=h) for h in [time_begin, time_end]]
 [time_begin, time_end] = time_pair(today, *time_range)
-
-def get_toot_str(today, time_begin, time_end):
-    time_str = [t.strftime('%H:%M') for t in [time_begin, time_end]]
-    return f"{time_begin.date()} {'-'.join(time_str)}\n#社畜丼トレンド"
 
 time_range = time_pair(today, *time_range)
 toot_str = get_toot_str(today, *time_range)
-statuses = timeline.with_time(*time_range)
 
+use_database = "db" in sys.argv
+
+statuses = timeline.with_time(*time_range, use_database)
 wordlist = words.wordlistFromStatuses(statuses)
 
 import re
