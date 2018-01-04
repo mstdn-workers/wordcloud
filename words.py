@@ -67,7 +67,7 @@ def wordlistFromStatuses(statuses):
 def get_wordcloud_from_wordlist(wordlist, background_image='background', slow_connection_mode=False):
     from PIL import Image
 
-    fpath = "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
+    fpath = "/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc"
 
     # ストップワードの設定
     stop_words = [
