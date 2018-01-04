@@ -67,10 +67,7 @@ def wordlistFromStatuses(statuses):
 def get_wordcloud_from_wordlist(wordlist, background_image='background', slow_connection_mode=False):
     from PIL import Image
 
-    # 環境に合わせてフォントのパスを指定する。
-    #fpath = "/System/Library/Fonts/HelveticaNeue-UltraLight.otf"
-    #fpath = "/Library/Fonts/ヒラギノ角ゴ Pro W3.otf"
-    fpath = "/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc"
+    fpath = "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
 
     # ストップワードの設定
     stop_words = [
