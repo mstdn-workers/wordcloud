@@ -13,7 +13,9 @@ def __str2datetime(s):
     from datetime import datetime
     import dateutil.parser
     from pytz import timezone
-    return dateutil.parser.parse(s).astimezone(timezone('Asia/Tokyo'))
+    if type(s) == str:
+        s = dateutil.parser.parse(s)
+    return s.astimezone(timezone('Asia/Tokyo'))
 
 def with_time(time_begin, time_end, db=False):
     if not db:
@@ -28,7 +30,7 @@ def with_time(time_begin, time_end, db=False):
         time.astimezone(timezone.utc).isoformat()
         for time in (time_begin, time_end))
     
-    conn = sqlite3.connect('/db/timelines.sqlite3')
+    conn = sqlite3.connect('file:/db/timelines.sqlite3?mode=ro', uri=True)
     tl = list(
         pickle.loads(r[0])
         for r in conn.execute(
