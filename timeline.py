@@ -21,14 +21,14 @@ def with_time(time_begin, time_end, db=False):
     
     import datetime
     from datetime import timezone
-    import sqlite3 as db
+    import sqlite3
     import pickle
     
     time_range = tuple(
         time.astimezone(timezone.utc).isoformat()
         for time in (time_begin, time_end))
     
-    conn = db.connect('/db/timelines.sqlite3')
+    conn = sqlite3.connect('/db/timelines.sqlite3')
     tl = list(
         pickle.loads(r[0])
         for r in conn.execute(
