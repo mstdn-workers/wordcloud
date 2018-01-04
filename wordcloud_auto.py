@@ -47,7 +47,7 @@ if ("post" in sys.argv):
             media_file=wordcloud_img,
             status="\n".join(
                 ["#社畜丼トレンド 低速回線モード",
-                 f"{len(df_ranged)} の投稿を処理しました。",
+                 f"{len(statuses)} の投稿を処理しました。",
                  "出現回数の多かった単語は以下の通りです："] + [
                     f'  "{word}": {cnt}' for word, cnt in (
                         (item[0], word_times[item[0]])
