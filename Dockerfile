@@ -39,6 +39,6 @@ COPY syachiku-chan.overcolored.jpg ./background
 RUN chown $NB_USER:users -R /work/ /home/$NB_USER/
 USER $NB_USER
 RUN ./update_userdic.sh username.csv
-COPY GDhw*.ttf ./
+COPY GDhwGoJA-TTF108b.ttf  GDhwGoJA-OTF112b2.otf ./
 
 CMD ["jupyter", "notebook"]
