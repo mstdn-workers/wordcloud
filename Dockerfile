@@ -28,7 +28,10 @@ COPY jupyter_notebook_config.py /home/$NB_USER/.jupyter/
 EXPOSE 8888
 WORKDIR /work
 
-COPY Wordcloud_auto.ipynb wordcloud_auto.py \
+COPY Wordcloud_auto.ipynb \
+  timeline.py \
+  words.py \
+  wordcloud_auto.py \
   username.csv update_userdic.sh ./
 COPY my_clientcred_workers.txt my_usercred_workers.txt ./
 COPY syachiku-chan.overcolored.jpg ./background
