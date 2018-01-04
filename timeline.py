@@ -9,13 +9,35 @@ mastodon = Mastodon(
     api_base_url = "https://mstdn-workers.com"
 )
 
-def with_time(time_begin, time_end):
-    def str2datetime(s):
-        from datetime import datetime
-        import dateutil.parser
-        from pytz import timezone
-        return dateutil.parser.parse(s).astimezone(timezone('Asia/Tokyo'))
+def __str2datetime(s):
+    from datetime import datetime
+    import dateutil.parser
+    from pytz import timezone
+    return dateutil.parser.parse(s).astimezone(timezone('Asia/Tokyo'))
+
+def with_time(time_begin, time_end, db=False):
+    if not db:
+        return __with_time_fallback(time_begin, time_end)
     
+    import datetime
+    from datetime import timezone
+    import sqlite3 as db
+    import pickle
+    
+    time_range = tuple(
+        time.astimezone(timezone.utc).isoformat()
+        for time in (time_begin, time_end))
+    
+    conn = db.connect('/db/timelines.sqlite3')
+    tl = list(
+        pickle.loads(r[0])
+        for r in conn.execute(
+            'SELECT pickle FROM timeline WHERE created_at >= ? AND created_at < ?;',
+            time_range))        
+    conn.close()
+    return tl
+
+def __with_time_fallback(time_begin, time_end):
     tl_ = []
     from time import sleep
     max_id = None
@@ -28,7 +50,7 @@ def with_time(time_begin, time_end):
             limit=40)
         max_id = tl[-1]['id']
         for toot in tl:
-            created_at = str2datetime(toot['created_at'])
+            created_at = __str2datetime(toot['created_at'])
             if created_at < time_begin:
                 running = False
                 break
@@ -38,7 +60,7 @@ def with_time(time_begin, time_end):
         if not running:
             break
         sleep(1.5)
-    return tl_
+    return reversed(tl_)
 
 def post(status, media_file, spoiler_text=None, mime_type=None):
     media_file = mastodon.media_post(media_file=media_file, mime_type=mime_type)
