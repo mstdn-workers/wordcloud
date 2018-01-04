@@ -85,17 +85,15 @@ def get_wordcloud_from_wordlist(wordlist, background_image='background', slow_co
     
     img_array = np.array(Image.open(background_image))
     
-    pastel_colors = [f"hsl({hue}, 25%, 66%)" for hue in [0, 60, 120, 180]]
-    def pastel_color_func(word, font_size, position, orientation, random_state=None,
+    def white_color_func(word, font_size, position, orientation, random_state=None,
                           **kwargs):
-        import random
-        return pastel_colors[random.randint(0, 3)]
+        return "white"
     
     wordcloud = WordCloud(regexp=r"\w[\w']*",
-                          background_color="white",
+                          background_color="rgb(0,116,89)",
                           font_path=fpath,
                           mask=img_array,
-                          color_func=pastel_color_func if slow_connection_mode else ImageColorGenerator(img_array),
+                          color_func=white_color_func,
                           scale=1.5,
                           stopwords=set(stop_words),
 #                          max_font_size=55, 
