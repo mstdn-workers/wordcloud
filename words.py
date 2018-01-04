@@ -5,8 +5,9 @@ from wordcloud import WordCloud, ImageColorGenerator
 from natto import MeCab
 
 def mecab_analysis(text):
+    import os
     mecab_flags = [
-        '-d /usr/lib/mecab/dic/mecab-ipadic-neologd/',
+        f'-d {os.popen("mecab-config --dicdir").read().strip()}/mecab-ipadic-neologd/',
         '-u username.dic',
     ]
     t = MeCab(' '.join(mecab_flags))
