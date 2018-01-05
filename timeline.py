@@ -62,7 +62,7 @@ def __with_time_fallback(time_begin, time_end):
         if not running:
             break
         sleep(1.5)
-    return reversed(tl_)
+    return list(reversed(tl_))
 
 def post(status, media_file, spoiler_text=None, mime_type=None):
     media_file = mastodon.media_post(media_file=media_file, mime_type=mime_type)
