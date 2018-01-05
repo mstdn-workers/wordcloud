@@ -99,7 +99,10 @@ def get_wordcloud_from_wordlist(wordlist, background_image='background', slow_co
                           scale=1.5,
                           stopwords=set(stop_words),
 #                          max_font_size=55, 
-                         ).generate(' '.join(wordlist))
+                         )
+    text = ' '.join(wordlist)
+    words = wordcloud.process_text(text)
+    wordcloud.generate_from_frequencies(words)
     
     if slow_connection_mode:
         (wordcloud.to_image()
@@ -109,4 +112,4 @@ def get_wordcloud_from_wordlist(wordlist, background_image='background', slow_co
     else:
         wordcloud.to_file("/tmp/wordcloud.png")
     
-    return wordcloud
+    return wordcloud, words

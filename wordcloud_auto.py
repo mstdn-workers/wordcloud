@@ -35,23 +35,26 @@ wordlist = [w for w in wordlist if not re.match('^[あ-んーア-ンーｱ-ﾝ�
 
 slow_connection_mode="slow" in sys.argv
 #返ってきたリストを結合してワードクラウドにする
-wordcloud = words.get_wordcloud_from_wordlist(wordlist, slow_connection_mode=slow_connection_mode)
+wordcloud, wordcount = words.get_wordcloud_from_wordlist(
+    wordlist,
+    slow_connection_mode=slow_connection_mode)
 
 if ("post" in sys.argv):
     wordcloud_img = '/tmp/wordcloud.png'
-    if slow_connection_mode:
-        from collections import Counter
-        word_times = Counter(wordlist)
+    if slow_connection_mode: 
+        from operator import itemgetter
         timeline.post(
             spoiler_text=toot_str,
             media_file=wordcloud_img,
             status="\n".join(
                 ["#社畜丼トレンド 低速回線モード",
                  f"{len(statuses)} の投稿を処理しました。",
-                 "出現回数の多かった単語は以下の通りです："] + [
-                    f'  "{word}": {cnt}' for word, cnt in (
-                        (item[0], word_times[item[0]])
-                        for item in sorted(wordcloud.words_.items(), key=lambda x:x[1], reverse=True)[:10])]
+                 "出現回数の多かった単語は以下の通りです："] + \
+                [f'  "{word}": {cnt}'
+                 for word, cnt in sorted(
+                     wordcount.items(),
+                     key=itemgetter(1),
+                     reverse=True)[:10]]
             ))
     else:
         timeline.post(status=toot_str, media_file=wordcloud_img)
