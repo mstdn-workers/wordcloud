@@ -18,10 +18,9 @@ today = now.date()
 today = jst.localize(datetime(today.year, today.month, today.day))
 
 hour_end = now.timetuple().tm_hour
-time_range = [hour_end-1, hour_end]
-[time_begin, time_end] = time_pair(today, *time_range)
+hour_pair = [hour_end-1, hour_end]
 
-time_range = time_pair(today, *time_range)
+time_range = time_pair(today, *hour_pair)
 toot_str = get_toot_str(today, *time_range)
 
 use_database = "db" in sys.argv
