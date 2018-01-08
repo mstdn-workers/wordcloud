@@ -44,10 +44,9 @@ if ("post" in sys.argv):
     if slow_connection_mode: 
         from operator import itemgetter
         timeline.post(
-            spoiler_text=toot_str,
             media_file=wordcloud_img,
             status="\n".join(
-                ["#社畜丼トレンド 低速回線モード",
+                [toot_str + " 低速回線モード",
                  f"{len(statuses)} の投稿を処理しました。",
                  "出現回数の多かった単語は以下の通りです："] + \
                 [f'  "{word}": {cnt}'
