@@ -37,6 +37,11 @@ def get_status_params(today, time_range, statuses, slow_connection_mode, wordclo
     )
     return status_params
 
+def zen_alnum_normalize(c):
+    if "０" <= c <= "９": return chr(ord(c) - ord("０") + ord('0'))
+    if "Ａ" <= c <= "ｚ": return chr(ord(c) - ord("Ａ") + ord('A'))
+    return c
+
 jst = pytz.timezone('Asia/Tokyo')
 now = datetime.now(jst)
 today = now.date()
@@ -55,6 +60,8 @@ wordlist = words.wordlistFromStatuses(statuses)
 import re
 #一文字ひらがな、カタカナを削除
 wordlist = [w for w in wordlist if not re.match('^[あ-んーア-ンーｱ-ﾝｰ]$', w)]
+#全角数字とアルファベットを半角へ
+wordlist = ["".join(zen_alnum_normalize(c) for c in w) for w in wordlist]
 
 slow_connection_mode="slow" in sys.argv
 #返ってきたリストを結合してワードクラウドにする
