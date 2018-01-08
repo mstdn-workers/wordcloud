@@ -5,12 +5,16 @@ import timeline
 from datetime import datetime, timedelta, date
 import pytz
 
-def time_pair(today, time_begin, time_end):
-    return [today+timedelta(hours=h) for h in [time_begin, time_end]]
+def time_pair(today, hour_begin, hour_end):
+    return tuple(today+timedelta(hours=h) for h in [hour_begin, hour_end])
 
-def get_toot_str(today, time_begin, time_end):
-    time_str = [t.strftime('%H:%M') for t in [time_begin, time_end]]
-    return f"{time_begin.date()} {'-'.join(time_str)}\n#社畜丼トレンド"
+def get_time_str(today, time_range):
+    time_str = [t.strftime('%H:%M') for t in time_range]
+    time_begin = time_range[0]
+    return f"{time_begin.date()} {'-'.join(time_str)}"
+
+def get_toot_str(today, time_range):
+    return "\n".join((get_time_str(today, time_range), "#社畜丼トレンド"))
 
 jst = pytz.timezone('Asia/Tokyo')
 now = datetime.now(jst)
@@ -21,7 +25,7 @@ hour_end = now.timetuple().tm_hour
 hour_pair = [hour_end-1, hour_end]
 
 time_range = time_pair(today, *hour_pair)
-toot_str = get_toot_str(today, *time_range)
+toot_str = get_toot_str(today, time_range)
 
 use_database = "db" in sys.argv
 
