@@ -65,5 +65,8 @@ def __with_time_fallback(time_begin, time_end):
     return list(reversed(tl_))
 
 def post(status, media_file, spoiler_text=None, mime_type=None):
-    media_file = mastodon.media_post(media_file=media_file, mime_type=mime_type)
-    return mastodon.status_post(status=status, media_ids=[media_file], spoiler_text=spoiler_text)
+    if media_file:
+        media_file = mastodon.media_post(media_file=media_file, mime_type=mime_type)
+        return mastodon.status_post(status=status, media_ids=[media_file], spoiler_text=spoiler_text)
+    else:
+        return mastodon.status_post(status=status, spoiler_text=spoiler_text)

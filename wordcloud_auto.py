@@ -23,19 +23,28 @@ def get_wordcount_lines(wordcount):
               key=itemgetter(1),
               reverse=True)[:10]))
 
-def get_status_params(today, time_range, statuses, detail_texts, slow_connection_mode, wordcloud, wordcount):
+def get_status_params(
+        today, time_range,
+        statuses, enough_words, detail_texts,
+        slow_connection_mode, wordcloud=None, wordcount=dict()):
     wordcloud_img = '/tmp/wordcloud.png'
     status_str_lines = [get_time_str(today, time_range)]
     status_str_lines.append("#社畜丼トレンド" if not slow_connection_mode else "#社畜丼トレンド 低速回線モード")
     status_str_lines.append(f"{len(statuses)} の投稿を処理しました。")
     status_str_lines.extend(detail_texts)
-    if slow_connection_mode:
+    if slow_connection_mode and wordcount:
         status_str_lines.extend(get_wordcount_lines(wordcount))
     
-    status_params = dict(
-        media_file=wordcloud_img,
-        status="\n".join(status_str_lines)
-    )
+    if enough_words:
+        status_params = dict(
+            media_file=wordcloud_img,
+            status="\n".join(status_str_lines)
+        )
+    else:
+        status_str_lines.append("トレンド画像を生成するために充分な単語数がありません")
+        status_params = dict(
+            status="\n".join(status_str_lines)
+        )
     return status_params
 
 def zen_alnum_normalize(c):
@@ -85,6 +94,9 @@ def convert_wordlist(wordlist):
     wordlist = ("".join(zen_alnum_normalize(c) for c in w) for w in wordlist)
     return list(wordlist)
 
+def enough_words(wordlist):
+    return len(set(wordlist)) > 2
+
 jst = pytz.timezone('Asia/Tokyo')
 now = datetime.now(jst)
 today = now.date()
@@ -103,15 +115,20 @@ statuses = timeline.with_time(*time_range, use_database)
 statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
 wordlist = words.wordlist_from_statuses(statuses)
 
-#返ってきたリストを結合してワードクラウドにする
-wordcloud, wordcount = words.get_wordcloud_from_wordlist(
-    convert_wordlist(wordlist),
-    slow_connection_mode=slow_connection_mode)
+enough = enough_words(wordlist)
+
+wordcloud, wordcount = None, None
+if enough:
+    #返ってきたリストを結合してワードクラウドにする
+    wordcloud, wordcount = words.get_wordcloud_from_wordlist(
+        convert_wordlist(wordlist),
+        slow_connection_mode=slow_connection_mode)
 
 if post:
     timeline.post(**get_status_params(
         today, time_range,
         statuses,
+        enough,
         detail_texts,
         slow_connection_mode,
         wordcloud, wordcount))
