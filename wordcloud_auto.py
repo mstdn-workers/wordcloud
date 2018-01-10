@@ -97,6 +97,7 @@ time_range = time_pair(today, *hour_pair)
 
 use_database = "db" in sys.argv
 slow_connection_mode="slow" in sys.argv
+post = "post" in sys.argv
 
 statuses = timeline.with_time(*time_range, use_database)
 statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
@@ -107,7 +108,7 @@ wordcloud, wordcount = words.get_wordcloud_from_wordlist(
     convert_wordlist(wordlist),
     slow_connection_mode=slow_connection_mode)
 
-if ("post" in sys.argv):
+if post:
     timeline.post(**get_status_params(
         today, time_range,
         statuses,
