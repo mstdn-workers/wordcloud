@@ -30,17 +30,17 @@ def dictFromStatus(toot):
         toot=toot['content'] if toot['spoiler_text'] == '' else toot['spoiler_text']
     )
 
-def filter_df(df):
-    filter_suffix = [
+def is_spam(status):
+    spam_accounts = ['yukimama']
+    spam_account_name_suffix = [
         '_info', '_infom', '_information', '_material',
     ]
-    return df[
-        ~df['username'].map(
-            lambda s:
-                any([s.lower().endswith(sfx)
-                     for sfx in filter_suffix])
-        )
-    ]
+    username = status['account']['username']
+    return username in spam_accounts or \
+        any(username.lower().endswith(sfx) for sfx in spam_account_name_suffix)
+
+def filter_statuses(statuses):
+    return (s for s in statuses if not is_spam(s))
 
 def toot_convert(toots):
     import re, html
@@ -57,11 +57,12 @@ def toot_convert(toots):
     )
 
 def wordlist_from_statuses(statuses):
+    statuses = filter_statuses(statuses)
     df_ranged = pd.DataFrame.from_records(
     [dictFromStatus(s) for s in statuses])
 
     # 全トゥートを結合して形態素解析に流し込んで単語に分割する
-    wordlist = mecab_analysis(' '.join(toot_convert(filter_df(df_ranged)['toot']).tolist()))
+    wordlist = mecab_analysis(' '.join(toot_convert(df_ranged['toot']).tolist()))
     return wordlist
 
 def get_wordcloud_from_wordlist(wordlist, background_image='background', slow_connection_mode=False):
