@@ -43,20 +43,6 @@ def zen_alnum_normalize(c):
     if "Ａ" <= c <= "ｚ": return chr(ord(c) - ord("Ａ") + ord('A'))
     return c
 
-jst = pytz.timezone('Asia/Tokyo')
-now = datetime.now(jst)
-today = now.date()
-today = jst.localize(datetime(today.year, today.month, today.day))
-
-hour_end = now.timetuple().tm_hour
-hour_pair = [hour_end-1, hour_end]
-
-time_range = time_pair(today, *hour_pair)
-
-use_database = "db" in sys.argv
-
-statuses = timeline.with_time(*time_range, use_database)
-
 def is_spam(status):
     spam_accounts = ['yukimama']
     spam_account_name_suffix = [
@@ -91,9 +77,6 @@ def filter_statuses_with_detail_texts(statuses):
         detail_texts.append(f"社畜丼トレンド自身の{f'{self_cnt}個の' if self_cnt > 1 else ''}投稿を除外しました。")
     return statuses, detail_texts
 
-statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
-wordlist = words.wordlist_from_statuses(statuses)
-
 def convert_wordlist(wordlist):
     import re
     #一文字ひらがな、カタカナを削除
@@ -102,7 +85,23 @@ def convert_wordlist(wordlist):
     wordlist = ("".join(zen_alnum_normalize(c) for c in w) for w in wordlist)
     return wordlist
 
+jst = pytz.timezone('Asia/Tokyo')
+now = datetime.now(jst)
+today = now.date()
+today = jst.localize(datetime(today.year, today.month, today.day))
+
+hour_end = now.timetuple().tm_hour
+hour_pair = [hour_end-1, hour_end]
+
+time_range = time_pair(today, *hour_pair)
+
+use_database = "db" in sys.argv
 slow_connection_mode="slow" in sys.argv
+
+statuses = timeline.with_time(*time_range, use_database)
+statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
+wordlist = words.wordlist_from_statuses(statuses)
+
 #返ってきたリストを結合してワードクラウドにする
 wordcloud, wordcount = words.get_wordcloud_from_wordlist(
     convert_wordlist(wordlist),
