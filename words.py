@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 
 from wordcloud import WordCloud, ImageColorGenerator
 from natto import MeCab
@@ -22,46 +21,22 @@ def mecab_analysis(text):
                 output.append(node.surface)
     return output
 
-def dictFromStatus(toot):
-    return dict(
-        id=toot['id'],
-        created_at=toot['created_at'],
-        username=toot['account']['username'],
-        toot=toot['content'] if toot['spoiler_text'] == '' else toot['spoiler_text']
-    )
+def get_content_from_status(status):
+    return status['spoiler_text'] or status['content']
 
-def filter_df(df):
-    filter_suffix = [
-        '_info', '_infom', '_information', '_material',
-    ]
-    return df[
-        ~df['username'].map(
-            lambda s:
-                any([s.lower().endswith(sfx)
-                     for sfx in filter_suffix])
-        )
-    ]
-
-def toot_convert(toots):
+def convert_content(content):
     import re, html
-    return toots.map(
-        lambda s: re.sub('<[^>]*>', '', s)
-    ).map(
-        lambda s: re.sub(r'https?://[^ ]+', "", s)
-    ).map(
-        lambda s: html.unescape(s)
-    ).map(
-        lambda s: re.sub(r"＿[人 ]+＿\s*＞([^＜]+)＜\s*￣(Y\^)+Y￣", r"\1", s)
-    ).map(
-        lambda s: re.sub("　", "", s)
-    )
+    content = re.sub('<[^>]*>', '', content)
+    content = re.sub(r'https?://[^ ]+', "", content)
+    content = html.unescape(content)
+    content = re.sub(r"＿[人 ]+＿\s*＞([^＜]+)＜\s*￣(Y\^)+Y￣", r"\1", content)
+    content = re.sub("　", "", content)
+    return content
 
-def wordlistFromStatuses(statuses):
-    df_ranged = pd.DataFrame.from_records(
-    [dictFromStatus(s) for s in statuses])
-
+def wordlist_from_statuses(statuses):
     # 全トゥートを結合して形態素解析に流し込んで単語に分割する
-    wordlist = mecab_analysis(' '.join(toot_convert(filter_df(df_ranged)['toot']).tolist()))
+    wordlist = mecab_analysis(' '.join(
+        convert_content(get_content_from_status(s)) for s in statuses))
     return wordlist
 
 def get_wordcloud_from_wordlist(wordlist, background_image='background', slow_connection_mode=False):
