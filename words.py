@@ -56,7 +56,7 @@ def toot_convert(toots):
         lambda s: re.sub("　", "", s)
     )
 
-def wordlistFromStatuses(statuses):
+def wordlist_from_statuses(statuses):
     df_ranged = pd.DataFrame.from_records(
     [dictFromStatus(s) for s in statuses])
 

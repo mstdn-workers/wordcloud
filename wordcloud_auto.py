@@ -55,7 +55,7 @@ time_range = time_pair(today, *hour_pair)
 use_database = "db" in sys.argv
 
 statuses = timeline.with_time(*time_range, use_database)
-wordlist = words.wordlistFromStatuses(statuses)
+wordlist = words.wordlist_from_statuses(statuses)
 
 import re
 #一文字ひらがな、カタカナを削除
