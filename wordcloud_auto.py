@@ -94,16 +94,18 @@ def filter_statuses_with_detail_texts(statuses):
 statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
 wordlist = words.wordlist_from_statuses(statuses)
 
-import re
-#一文字ひらがな、カタカナを削除
-wordlist = [w for w in wordlist if not re.match('^[あ-んーア-ンーｱ-ﾝｰ]$', w)]
-#全角数字とアルファベットを半角へ
-wordlist = ["".join(zen_alnum_normalize(c) for c in w) for w in wordlist]
+def convert_wordlist(wordlist):
+    import re
+    #一文字ひらがな、カタカナを削除
+    wordlist = (w for w in wordlist if not re.match('^[あ-んーア-ンーｱ-ﾝｰ]$', w))
+    #全角数字とアルファベットを半角へ
+    wordlist = ("".join(zen_alnum_normalize(c) for c in w) for w in wordlist)
+    return wordlist
 
 slow_connection_mode="slow" in sys.argv
 #返ってきたリストを結合してワードクラウドにする
 wordcloud, wordcount = words.get_wordcloud_from_wordlist(
-    wordlist,
+    convert_wordlist(wordlist),
     slow_connection_mode=slow_connection_mode)
 
 if ("post" in sys.argv):
