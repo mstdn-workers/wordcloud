@@ -83,7 +83,7 @@ def convert_wordlist(wordlist):
     wordlist = (w for w in wordlist if not re.match('^[あ-んーア-ンーｱ-ﾝｰ]$', w))
     #全角数字とアルファベットを半角へ
     wordlist = ("".join(zen_alnum_normalize(c) for c in w) for w in wordlist)
-    return wordlist
+    return list(wordlist)
 
 jst = pytz.timezone('Asia/Tokyo')
 now = datetime.now(jst)
