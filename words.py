@@ -22,13 +22,8 @@ def mecab_analysis(text):
                 output.append(node.surface)
     return output
 
-def dictFromStatus(toot):
-    return dict(
-        id=toot['id'],
-        created_at=toot['created_at'],
-        username=toot['account']['username'],
-        toot=toot['content'] if toot['spoiler_text'] == '' else toot['spoiler_text']
-    )
+def get_content_from_status(status):
+    return status['spoiler_text'] or status['content']
 
 def is_spam(status):
     spam_accounts = ['yukimama']
@@ -59,7 +54,7 @@ def toot_convert(toots):
 def wordlist_from_statuses(statuses):
     statuses = filter_statuses(statuses)
     df_ranged = pd.DataFrame.from_records(
-    [dictFromStatus(s) for s in statuses])
+        dict(toot=get_content_from_status(s)) for s in statuses)
 
     # 全トゥートを結合して形態素解析に流し込んで単語に分割する
     wordlist = mecab_analysis(' '.join(toot_convert(df_ranged['toot']).tolist()))
