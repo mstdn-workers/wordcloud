@@ -55,6 +55,42 @@ time_range = time_pair(today, *hour_pair)
 use_database = "db" in sys.argv
 
 statuses = timeline.with_time(*time_range, use_database)
+
+def is_spam(status):
+    spam_accounts = ['yukimama']
+    spam_account_name_suffix = [
+        '_info', '_infom', '_information', '_material',
+    ]
+    username = status['account']['username']
+    return username in spam_accounts or \
+        any(username.lower().endswith(sfx) for sfx in spam_account_name_suffix)
+
+def is_trend(status):
+    app = status['application']
+    return app['name'] == "D's toot trends App" if app else False
+
+def filterfalse_with_count(seq, *preds):
+    filter_result = []
+    counts = [0] * len(preds)
+    for item in seq:
+        for i, pred in enumerate(preds):
+            if pred(item):
+                counts[i] += 1
+                break
+        else:
+            filter_result.append(item)
+    return (filter_result, *counts)
+
+def filter_statuses_with_detail_texts(statuses):
+    detail_texts = []
+    statuses, spam_cnt, self_cnt = filterfalse_with_count(statuses, is_spam, is_trend)
+    if spam_cnt > 0:
+        detail_texts.append(f"スパムとして{spam_cnt}の投稿を除外しました。")
+    if self_cnt > 0:
+        detail_texts.append(f"社畜丼トレンド自身の{f'{self_cnt}個の' if self_cnt > 1 else ''}投稿を除外しました。")
+    return statuses, detail_texts
+
+statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
 wordlist = words.wordlist_from_statuses(statuses)
 
 import re

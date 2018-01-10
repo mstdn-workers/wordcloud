@@ -24,18 +24,6 @@ def mecab_analysis(text):
 def get_content_from_status(status):
     return status['spoiler_text'] or status['content']
 
-def is_spam(status):
-    spam_accounts = ['yukimama']
-    spam_account_name_suffix = [
-        '_info', '_infom', '_information', '_material',
-    ]
-    username = status['account']['username']
-    return username in spam_accounts or \
-        any(username.lower().endswith(sfx) for sfx in spam_account_name_suffix)
-
-def filter_statuses(statuses):
-    return (s for s in statuses if not is_spam(s))
-
 def convert_content(content):
     import re, html
     content = re.sub('<[^>]*>', '', content)
@@ -46,8 +34,6 @@ def convert_content(content):
     return content
 
 def wordlist_from_statuses(statuses):
-    statuses = filter_statuses(statuses)
-    
     # 全トゥートを結合して形態素解析に流し込んで単語に分割する
     wordlist = mecab_analysis(' '.join(
         convert_content(get_content_from_status(s)) for s in statuses))
