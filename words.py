@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 
 from wordcloud import WordCloud, ImageColorGenerator
 from natto import MeCab
@@ -37,27 +36,21 @@ def is_spam(status):
 def filter_statuses(statuses):
     return (s for s in statuses if not is_spam(s))
 
-def toot_convert(toots):
+def convert_content(content):
     import re, html
-    return toots.map(
-        lambda s: re.sub('<[^>]*>', '', s)
-    ).map(
-        lambda s: re.sub(r'https?://[^ ]+', "", s)
-    ).map(
-        lambda s: html.unescape(s)
-    ).map(
-        lambda s: re.sub(r"＿[人 ]+＿\s*＞([^＜]+)＜\s*￣(Y\^)+Y￣", r"\1", s)
-    ).map(
-        lambda s: re.sub("　", "", s)
-    )
+    content = re.sub('<[^>]*>', '', content)
+    content = re.sub(r'https?://[^ ]+', "", content)
+    content = html.unescape(content)
+    content = re.sub(r"＿[人 ]+＿\s*＞([^＜]+)＜\s*￣(Y\^)+Y￣", r"\1", content)
+    content = re.sub("　", "", content)
+    return content
 
 def wordlist_from_statuses(statuses):
     statuses = filter_statuses(statuses)
-    df_ranged = pd.DataFrame.from_records(
-        dict(toot=get_content_from_status(s)) for s in statuses)
-
+    
     # 全トゥートを結合して形態素解析に流し込んで単語に分割する
-    wordlist = mecab_analysis(' '.join(toot_convert(df_ranged['toot']).tolist()))
+    wordlist = mecab_analysis(' '.join(
+        convert_content(get_content_from_status(s)) for s in statuses))
     return wordlist
 
 def get_wordcloud_from_wordlist(wordlist, background_image='background', slow_connection_mode=False):
