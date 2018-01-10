@@ -23,11 +23,12 @@ def get_wordcount_lines(wordcount):
               key=itemgetter(1),
               reverse=True)[:10]))
 
-def get_status_params(today, time_range, statuses, slow_connection_mode, wordcloud, wordcount):
+def get_status_params(today, time_range, statuses, detail_texts, slow_connection_mode, wordcloud, wordcount):
     wordcloud_img = '/tmp/wordcloud.png'
     status_str_lines = [get_time_str(today, time_range)]
     status_str_lines.append("#社畜丼トレンド" if not slow_connection_mode else "#社畜丼トレンド 低速回線モード")
     status_str_lines.append(f"{len(statuses)} の投稿を処理しました。")
+    status_str_lines.extend(detail_texts)
     if slow_connection_mode:
         status_str_lines.extend(get_wordcount_lines(wordcount))
     
@@ -109,5 +110,6 @@ if ("post" in sys.argv):
     timeline.post(**get_status_params(
         today, time_range,
         statuses,
+        detail_texts,
         slow_connection_mode,
         wordcloud, wordcount))
