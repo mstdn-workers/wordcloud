@@ -13,27 +13,27 @@ def get_time_str(today, time_range):
     time_begin = time_range[0]
     return f"{time_begin.date()} {'-'.join(time_str)}"
 
-def get_fallback_text(statuses, wordcloud, wordcount):
+def get_wordcount_lines(wordcount):
     from operator import itemgetter
-    return "\n".join(
-        ["低速回線モード",
-         f"{len(statuses)} の投稿を処理しました。",
-         "出現回数の多かった単語は以下の通りです："] + \
-        [f'  "{word}": {cnt}'
-         for word, cnt in sorted(
-             wordcount.items(),
-             key=itemgetter(1),
-             reverse=True)[:10]])
+    return (
+        "出現回数の多かった単語は以下の通りです：",
+        *(f'  "{word}": {cnt}'
+          for word, cnt in sorted(
+              wordcount.items(),
+              key=itemgetter(1),
+              reverse=True)[:10]))
 
 def get_status_params(today, time_range, statuses, slow_connection_mode, wordcloud, wordcount):
     wordcloud_img = '/tmp/wordcloud.png'
-    status_str = get_time_str(today, time_range) + "\n" + "#社畜丼トレンド"
+    status_str_lines = [get_time_str(today, time_range)]
+    status_str_lines.append("#社畜丼トレンド" if not slow_connection_mode else "#社畜丼トレンド 低速回線モード")
+    status_str_lines.append(f"{len(statuses)} の投稿を処理しました。")
     if slow_connection_mode:
-        status_str = status_str + " " + get_fallback_text(statuses, wordcloud, wordcount)
+        status_str_lines.extend(get_wordcount_lines(wordcount))
     
     status_params = dict(
         media_file=wordcloud_img,
-        status=status_str
+        status="\n".join(status_str_lines)
     )
     return status_params
 
