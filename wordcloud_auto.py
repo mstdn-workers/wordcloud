@@ -114,6 +114,7 @@ post = "post" in sys.argv
 statuses = timeline.with_time(*time_range, use_database)
 statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
 wordlist = words.wordlist_from_statuses(statuses)
+wordlist = convert_wordlist(wordlist)
 
 enough = enough_words(wordlist)
 
@@ -121,7 +122,7 @@ wordcloud, wordcount = None, None
 if enough:
     #返ってきたリストを結合してワードクラウドにする
     wordcloud, wordcount = words.get_wordcloud_from_wordlist(
-        convert_wordlist(wordlist),
+        wordlist,
         slow_connection_mode=slow_connection_mode)
 
 if post:
