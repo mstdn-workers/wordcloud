@@ -8,10 +8,14 @@ import pytz
 def time_pair(today, hour_begin, hour_end):
     return tuple(today+timedelta(hours=h) for h in [hour_begin, hour_end])
 
-def get_time_str(today, time_range):
-    time_str = [t.strftime('%H:%M') for t in time_range]
-    time_begin = time_range[0]
-    return f"{time_begin.date()} {'-'.join(time_str)}"
+def get_time_str(time_range):
+    time_begin, time_end = time_range
+    time_formats = ['%Y/%m/%d %H:%M'] * 2
+    if time_begin.year == time_end.year:
+        time_formats[1] = '%m/%d %H:%M'
+    if time_begin.date() == time_end.date():
+        time_formats[1] = '%H:%M'
+    return ' - '.join(t.strftime(f) for f, t in zip(time_formats, time_range))
 
 def get_wordcount_lines(wordcount):
     from operator import itemgetter
@@ -28,7 +32,7 @@ def get_status_params(
         statuses, enough_words, detail_texts,
         slow_connection_mode, wordcloud=None, wordcount=dict()):
     wordcloud_img = '/tmp/wordcloud.png'
-    status_str_lines = [get_time_str(today, time_range)]
+    status_str_lines = [get_time_str(time_range)]
     status_str_lines.append("#社畜丼トレンド" if not slow_connection_mode else "#社畜丼トレンド 低速回線モード")
     status_str_lines.append(f"{len(statuses)} の投稿を処理しました。")
     status_str_lines.extend(detail_texts)
