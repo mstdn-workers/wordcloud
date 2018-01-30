@@ -146,11 +146,15 @@ if __name__ == '__main__':
             wordlist,
             slow_connection_mode=args.slow)
     
+    # インタラクティブモードにするのに即投稿したいわけがないので
+    # postオプションが指定されたときはパラメータの生成のみを行う
     if args.post:
-        timeline.post(**get_status_params(
+        status_params = get_status_params(
             today, time_range,
             statuses,
             enough,
             detail_texts,
             args.slow,
-            wordcloud, wordcount))
+            wordcloud, wordcount)
+        if not sys.flags.interactive:
+            timeline.post(**status_params)
