@@ -67,6 +67,7 @@ def get_wordcloud_from_wordlist(wordlist, background_image='background', slow_co
         return pastel_colors[random.randint(0, 3)]
     
     wordcloud = WordCloud(regexp=r"\w[\w']*",
+                          normalize_plurals=False,
                           background_color="white",
                           font_path=fpath,
                           mask=img_array,
