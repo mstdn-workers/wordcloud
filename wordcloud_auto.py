@@ -1,4 +1,5 @@
 import sys
+import argparse
 import words
 import timeline
 
@@ -8,10 +9,14 @@ import pytz
 def time_pair(today, hour_begin, hour_end):
     return tuple(today+timedelta(hours=h) for h in [hour_begin, hour_end])
 
-def get_time_str(today, time_range):
-    time_str = [t.strftime('%H:%M') for t in time_range]
-    time_begin = time_range[0]
-    return f"{time_begin.date()} {'-'.join(time_str)}"
+def get_time_str(time_range):
+    time_begin, time_end = time_range
+    time_formats = ['%Y/%m/%d %H:%M'] * 2
+    if time_begin.year == time_end.year:
+        time_formats[1] = '%m/%d %H:%M'
+    if time_begin.date() == time_end.date():
+        time_formats[1] = '%H:%M'
+    return ' - '.join(t.strftime(f) for f, t in zip(time_formats, time_range))
 
 def get_wordcount_lines(wordcount):
     from operator import itemgetter
@@ -25,13 +30,15 @@ def get_wordcount_lines(wordcount):
 
 def get_status_params(
         today, time_range,
-        statuses, enough_words, detail_texts,
+        statuses, enough_words, detail_texts, message,
         slow_connection_mode, wordcloud=None, wordcount=dict()):
     wordcloud_img = '/tmp/wordcloud.png'
-    status_str_lines = [get_time_str(today, time_range)]
+    status_str_lines = [get_time_str(time_range)]
     status_str_lines.append("#社畜丼トレンド" if not slow_connection_mode else "#社畜丼トレンド 低速回線モード")
-    status_str_lines.append(f"{len(statuses)} の投稿を処理しました。")
+    if message:
+        status_str_lines.append(message)
     status_str_lines.extend(detail_texts)
+    status_str_lines.append(f"{len(statuses)} の投稿を処理しました。")
     if slow_connection_mode and wordcount:
         status_str_lines.extend(get_wordcount_lines(wordcount))
     
@@ -97,38 +104,60 @@ def convert_wordlist(wordlist):
 def enough_words(wordlist):
     return len(set(wordlist)) > 2
 
-jst = pytz.timezone('Asia/Tokyo')
-now = datetime.now(jst)
-today = now.date()
-today = jst.localize(datetime(today.year, today.month, today.day))
-
-hour_end = now.timetuple().tm_hour
-hour_pair = [hour_end-1, hour_end]
-
-time_range = time_pair(today, *hour_pair)
-
-use_database = "db" in sys.argv
-slow_connection_mode="slow" in sys.argv
-post = "post" in sys.argv
-
-statuses = timeline.with_time(*time_range, use_database)
-statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
-wordlist = words.wordlist_from_statuses(statuses)
-
-enough = enough_words(wordlist)
-
-wordcloud, wordcount = None, None
-if enough:
-    #返ってきたリストを結合してワードクラウドにする
-    wordcloud, wordcount = words.get_wordcloud_from_wordlist(
-        convert_wordlist(wordlist),
-        slow_connection_mode=slow_connection_mode)
-
-if post:
-    timeline.post(**get_status_params(
-        today, time_range,
-        statuses,
-        enough,
-        detail_texts,
-        slow_connection_mode,
-        wordcloud, wordcount))
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    hour_exclusive_group = parser.add_argument_group('hour').add_mutually_exclusive_group()
+    hour_exclusive_group.add_argument('--since-hour', metavar='SINCE_HOUR', type=int,
+                                      help="generate timeline trend wordcloud with [SINCE_HOUR, SINCE_HOUR+1]")
+    hour_exclusive_group.add_argument('--range', '--hour-range', metavar=('SINCE_HOUR', 'UNTIL_HOUR'), nargs=2, type=int)
+    parser.add_argument('--db', '--use-database', metavar='DATABASE',
+                        help='get statuses from database; DATABASE is path to sqlite3 database file like "/db/timeline.sqlite3"')
+    parser.add_argument('--slow', '--slow-connection-mode', action='store_true',
+                        help="run as slow-connection-mode. less image size and fallback text.")
+    parser.add_argument('--post', action='store_true',
+                        help="to post status if not interactive-mode else to generate status_params only")
+    parser.add_argument('--message', help="additional message")
+    args = parser.parse_args()
+    
+    jst = pytz.timezone('Asia/Tokyo')
+    now = datetime.now(jst)
+    today = now.date()
+    today = jst.localize(datetime(today.year, today.month, today.day))
+    
+    hour_end = now.timetuple().tm_hour
+    if args.since_hour != None:
+        hour_pair = [args.since_hour, args.since_hour+1]
+    elif args.range:
+        hour_pair = args.range
+    else:
+        hour_pair = [hour_end-1, hour_end]
+    
+    time_range = time_pair(today, *hour_pair)
+    
+    statuses = timeline.with_time(*time_range, args.db)
+    statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
+    wordlist = words.wordlist_from_statuses(statuses)
+    wordlist = convert_wordlist(wordlist)
+    
+    enough = enough_words(wordlist)
+    
+    wordcloud, wordcount = None, None
+    if enough:
+        #返ってきたリストを結合してワードクラウドにする
+        wordcloud, wordcount = words.get_wordcloud_from_wordlist(
+            wordlist,
+            slow_connection_mode=args.slow)
+    
+    # インタラクティブモードにするのに即投稿したいわけがないので
+    # postオプションが指定されたときはパラメータの生成のみを行う
+    if args.post:
+        status_params = get_status_params(
+            today, time_range,
+            statuses,
+            enough,
+            detail_texts,
+            args.message,
+            args.slow,
+            wordcloud, wordcount)
+        if not sys.flags.interactive:
+            timeline.post(**status_params)

@@ -3,7 +3,7 @@ Description=Post a toot showing the trend of Local Timeline every hour.
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/docker run --rm mstdn-workers/wordcloud python wordcloud_auto.py slow post
+ExecStart=/usr/bin/docker run --rm mstdn-workers/wordcloud python wordcloud_auto.py --slow-connection-mode --post
 
 [Install]
 WantedBy=default.target
