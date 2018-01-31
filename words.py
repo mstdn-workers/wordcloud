@@ -42,6 +42,9 @@ def wordlist_from_statuses(statuses):
 def get_wordcloud_from_wordlist_for_hourly(wordlist, background_image='background', slow_connection_mode=False):
     return __get_wordcloud_from_wordlist(wordlist, background_image=background_image, slow_connection_mode=slow_connection_mode)
 
+def get_wordcloud_from_wordlist_for_monthly(wordlist, background_image='background'):
+    return __get_wordcloud_from_wordlist(wordlist, background_image=background_image)
+
 def __get_wordcloud_from_wordlist(wordlist, background_image='background', slow_connection_mode=False):
     from PIL import Image
 
