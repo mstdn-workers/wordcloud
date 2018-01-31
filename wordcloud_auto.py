@@ -19,6 +19,9 @@ def get_time_str_for_hourly(time_range):
         time_formats[1] = '%H:%M'
     return ' - '.join(t.strftime(f) for f, t in zip(time_formats, time_range))
 
+def get_time_str_for_monthly(time_range):
+    return ' - '.join(t.strftime('%Y/%m/%d') for t in time_range)
+
 def get_wordcount_lines(wordcount):
     from operator import itemgetter
     return (
