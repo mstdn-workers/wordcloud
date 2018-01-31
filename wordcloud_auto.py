@@ -136,17 +136,19 @@ if __name__ == '__main__':
     jst = pytz.timezone('Asia/Tokyo')
     now = datetime.now(jst)
     today = now.date()
-    today = jst.localize(datetime(today.year, today.month, today.day))
-    
-    hour_end = now.timetuple().tm_hour
-    if args.since_hour != None:
-        hour_pair = [args.since_hour, args.since_hour+1]
-    elif args.range:
-        hour_pair = args.range
-    else:
-        hour_pair = [hour_end-1, hour_end]
-    
-    time_range = get_timepair_from_hourpair(today, *hour_pair)
+    if args.timespan_mode == TimeSpanMode.HOURLY:
+        today = jst.localize(datetime(today.year, today.month, today.day))
+        hour_end = now.timetuple().tm_hour
+        if args.since_hour != None:
+            hour_pair = [args.since_hour, args.since_hour+1]
+        elif args.range:
+            hour_pair = args.range
+        else:
+            hour_pair = [hour_end-1, hour_end]
+
+        time_range = get_timepair_from_hourpair(today, *hour_pair)
+    elif args.timespan_mode == TimeSpanMode.MONTHLY:
+        pass
     
     statuses = timeline.with_time(*time_range, args.db)
     statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
@@ -156,22 +158,38 @@ if __name__ == '__main__':
     enough = enough_words(wordlist)
     
     wordcloud, wordcount = None, None
-    if enough:
-        #返ってきたリストを結合してワードクラウドにする
-        wordcloud, wordcount = words.get_wordcloud_from_wordlist_for_hourly(
-            wordlist,
-            slow_connection_mode=args.slow)
+    
+    if args.timespan_mode == TimeSpanMode.HOURLY:
+        if enough:
+            #返ってきたリストを結合してワードクラウドにする
+            wordcloud, wordcount = words.get_wordcloud_from_wordlist_for_hourly(
+                wordlist,
+                slow_connection_mode=args.slow)
+    elif args.timespan_mode == TimeSpanMode.MONTHLY:
+        wordcloud, wordcount = words.get_wordcloud_from_wordlist_for_monthly(
+                wordlist,
+                background_image='./redbull.png')
     
     # インタラクティブモードにするのに即投稿したいわけがないので
     # postオプションが指定されたときはパラメータの生成のみを行う
     if args.post:
-        status_params = get_status_params_for_hourly(
-            today, time_range,
-            statuses,
-            enough,
-            detail_texts,
-            args.message,
-            args.slow,
-            wordcloud, wordcount)
+        if args.timespan_mode == TimeSpanMode.HOURLY:
+            status_params = get_status_params_for_hourly(
+                today, time_range,
+                statuses,
+                enough,
+                detail_texts,
+                args.message,
+                args.slow,
+                wordcloud, wordcount)
+        elif args.timespan_mode == TimeSpanMode.MONTHLY:
+            status_params = get_status_params_for_monthly(
+                today, time_range,
+                statuses,
+                enough,
+                detail_texts,
+                args.message,
+                wordcloud, wordcount)
+        
         if not sys.flags.interactive:
             timeline.post(**status_params)
