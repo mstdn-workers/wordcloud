@@ -159,16 +159,16 @@ if __name__ == '__main__':
     
     wordcloud, wordcount = None, None
     
-    if args.timespan_mode == TimeSpanMode.HOURLY:
-        if enough:
-            #返ってきたリストを結合してワードクラウドにする
-            wordcloud, wordcount = words.get_wordcloud_from_wordlist_for_hourly(
-                wordlist,
-                slow_connection_mode=args.slow)
-    elif args.timespan_mode == TimeSpanMode.MONTHLY:
-        wordcloud, wordcount = words.get_wordcloud_from_wordlist_for_monthly(
-                wordlist,
-                background_image='./redbull.png')
+    if enough:
+        if args.timespan_mode == TimeSpanMode.HOURLY:
+                #返ってきたリストを結合してワードクラウドにする
+                wordcloud, wordcount = words.get_wordcloud_from_wordlist_for_hourly(
+                    wordlist,
+                    slow_connection_mode=args.slow)
+        elif args.timespan_mode == TimeSpanMode.MONTHLY:
+            wordcloud, wordcount = words.get_wordcloud_from_wordlist_for_monthly(
+                    wordlist,
+                    background_image='./redbull.png')
     
     # インタラクティブモードにするのに即投稿したいわけがないので
     # postオプションが指定されたときはパラメータの生成のみを行う
