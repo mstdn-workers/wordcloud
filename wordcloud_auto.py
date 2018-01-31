@@ -3,6 +3,7 @@ import argparse
 import words
 import timeline
 
+from enum import Enum, auto
 from datetime import datetime, timedelta, date
 import pytz
 
@@ -104,19 +105,32 @@ def convert_wordlist(wordlist):
 def enough_words(wordlist):
     return len(set(wordlist)) > 2
 
+class TimeSpanMode(Enum):
+    HOURLY = auto()
+    MONTHLY = auto()
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    hour_exclusive_group = parser.add_argument_group('hour').add_mutually_exclusive_group()
-    hour_exclusive_group.add_argument('--since-hour', metavar='SINCE_HOUR', type=int,
-                                      help="generate timeline trend wordcloud with [SINCE_HOUR, SINCE_HOUR+1]")
-    hour_exclusive_group.add_argument('--range', '--hour-range', metavar=('SINCE_HOUR', 'UNTIL_HOUR'), nargs=2, type=int)
     parser.add_argument('--db', '--use-database', metavar='DATABASE',
                         help='get statuses from database; DATABASE is path to sqlite3 database file like "/db/timeline.sqlite3"')
-    parser.add_argument('--slow', '--slow-connection-mode', action='store_true',
-                        help="run as slow-connection-mode. less image size and fallback text.")
     parser.add_argument('--post', action='store_true',
                         help="to post status if not interactive-mode else to generate status_params only")
     parser.add_argument('--message', help="additional message")
+    
+    subparsers = parser.add_subparsers()
+    parser_hourly = subparsers.add_parser('hourly', help='see `hourly -h`', aliases=['h'])
+    parser_hourly.set_defaults(timespan_mode=TimeSpanMode.HOURLY)
+    
+    hour_exclusive_group = parser_hourly.add_argument_group('hour').add_mutually_exclusive_group()
+    hour_exclusive_group.add_argument('--since-hour', metavar='SINCE_HOUR', type=int,
+                                      help="generate timeline trend wordcloud with [SINCE_HOUR, SINCE_HOUR+1]")
+    hour_exclusive_group.add_argument('--range', '--hour-range', metavar=('SINCE_HOUR', 'UNTIL_HOUR'), nargs=2, type=int)
+    parser_hourly.add_argument('--slow', '--slow-connection-mode', action='store_true',
+                               help="run as slow-connection-mode. less image size and fallback text.")
+    
+    parser_monthly = subparsers.add_parser('monthly', help='see `monthly -h`', aliases=['m'])
+    parser_monthly.set_defaults(timespan_mode=TimeSpanMode.MONTHLY)
+    
     args = parser.parse_args()
     
     jst = pytz.timezone('Asia/Tokyo')
