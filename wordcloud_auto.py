@@ -51,7 +51,7 @@ def get_status_params_for_monthly(
         TimeSpanMode.MONTHLY,
         today, time_range,
         statuses, enough_words, detail_texts, message,
-        slow_connection_mode=False, wordcloud, wordcount
+        slow_connection_mode=False, wordcloud=wordcloud, wordcount=wordcount
     )
 
 def __get_status_params(
