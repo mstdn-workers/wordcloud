@@ -161,6 +161,8 @@ if __name__ == '__main__':
     
     parser_monthly = subparsers.add_parser('monthly', help='see `monthly -h`', aliases=['m'])
     parser_monthly.set_defaults(timespan_mode=TimeSpanMode.MONTHLY)
+    parser_monthly.add_argument('--try-this-month', action='store_true',
+                               help="generate for this month; not prev month")
     
     args = parser.parse_args()
     
@@ -183,9 +185,14 @@ if __name__ == '__main__':
 
         time_range = get_timepair_from_hourpair(today, *hour_pair)
     elif args.timespan_mode == TimeSpanMode.MONTHLY:
-        this_month = jst.localize(datetime(today.year, today.month, 1))
-        yesterday_of_1 = this_month - timedelta(days=1)
-        prev_month = jst.localize(datetime(yesterday_of_1.year, yesterday_of_1.month, 1))
+        if not args.try_this_month:
+            this_month = jst.localize(datetime(today.year, today.month, 1))
+            yesterday_of_1 = this_month - timedelta(days=1)
+            prev_month = jst.localize(datetime(yesterday_of_1.year, yesterday_of_1.month, 1))
+        else:
+            prev_month = jst.localize(datetime(today.year, today.month, 1))
+            next_1 = prev_month + timedelta(days=31)
+            this_month = jst.localize(datetime(next_1.year, next_1.month, 1))
         time_range = prev_month, this_month
     
     statuses = timeline.with_time(*time_range, args.db)
