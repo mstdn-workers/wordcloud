@@ -36,9 +36,37 @@ def get_status_params_for_hourly(
         today, time_range,
         statuses, enough_words, detail_texts, message,
         slow_connection_mode, wordcloud=None, wordcount=dict()):
+    return __get_status_params(
+        TimeSpanMode.HOURLY,
+        today, time_range,
+        statuses, enough_words, detail_texts, message,
+        slow_connection_mode, wordcloud, wordcount
+    )
+
+def get_status_params_for_monthly(
+        today, time_range,
+        statuses, enough_words, detail_texts, message,
+        wordcloud=None, wordcount=dict()):
+    return __get_status_params(
+        TimeSpanMode.MONTHLY,
+        today, time_range,
+        statuses, enough_words, detail_texts, message,
+        slow_connection_mode=False, wordcloud, wordcount
+    )
+
+def __get_status_params(
+        timespan_mode,
+        today, time_range,
+        statuses, enough_words, detail_texts, message,
+        slow_connection_mode, wordcloud, wordcount):
     wordcloud_img = '/tmp/wordcloud.png'
-    status_str_lines = [get_time_str_for_hourly(time_range)]
-    status_str_lines.append("#社畜丼トレンド" if not slow_connection_mode else "#社畜丼トレンド 低速回線モード")
+    if timespan_mode == TimeSpanMode.HOURLY:
+        status_str_lines = [get_time_str_for_hourly(time_range)]
+        status_str_lines.append("#社畜丼トレンド" if not slow_connection_mode else "#社畜丼トレンド 低速回線モード")
+    elif timespan_mode == TimeSpanMode.MONTHLY:
+        status_str_lines = [get_time_str_for_monthly(time_range)]
+        status_str_lines.append("#社畜丼トレンド")
+        status_str_lines.append("#月刊トレンド")
     if message:
         status_str_lines.append(message)
     status_str_lines.extend(detail_texts)
