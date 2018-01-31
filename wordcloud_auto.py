@@ -133,6 +133,10 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     
+    if not hasattr(args, 'timespan_mode'):
+        parser.print_help()
+        parser.exit()
+    
     jst = pytz.timezone('Asia/Tokyo')
     now = datetime.now(jst)
     today = now.date()
