@@ -39,7 +39,7 @@ def wordlist_from_statuses(statuses):
         convert_content(get_content_from_status(s)) for s in statuses))
     return wordlist
 
-def get_wordcloud_from_wordlist(wordlist, background_image='background', slow_connection_mode=False):
+def get_wordcloud_from_wordlist_for_hourly(wordlist, background_image='background', slow_connection_mode=False):
     from PIL import Image
 
     fpath = "/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc"

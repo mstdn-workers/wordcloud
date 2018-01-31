@@ -144,7 +144,7 @@ if __name__ == '__main__':
     wordcloud, wordcount = None, None
     if enough:
         #返ってきたリストを結合してワードクラウドにする
-        wordcloud, wordcount = words.get_wordcloud_from_wordlist(
+        wordcloud, wordcount = words.get_wordcloud_from_wordlist_for_hourly(
             wordlist,
             slow_connection_mode=args.slow)
     
