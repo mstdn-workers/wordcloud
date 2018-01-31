@@ -6,10 +6,10 @@ import timeline
 from datetime import datetime, timedelta, date
 import pytz
 
-def time_pair(today, hour_begin, hour_end):
+def get_timepair_from_hourpair(today, hour_begin, hour_end):
     return tuple(today+timedelta(hours=h) for h in [hour_begin, hour_end])
 
-def get_time_str(time_range):
+def get_time_str_for_hourly(time_range):
     time_begin, time_end = time_range
     time_formats = ['%Y/%m/%d %H:%M'] * 2
     if time_begin.year == time_end.year:
@@ -28,12 +28,12 @@ def get_wordcount_lines(wordcount):
               key=itemgetter(1),
               reverse=True)[:10]))
 
-def get_status_params(
+def get_status_params_for_hourly(
         today, time_range,
         statuses, enough_words, detail_texts, message,
         slow_connection_mode, wordcloud=None, wordcount=dict()):
     wordcloud_img = '/tmp/wordcloud.png'
-    status_str_lines = [get_time_str(time_range)]
+    status_str_lines = [get_time_str_for_hourly(time_range)]
     status_str_lines.append("#社畜丼トレンド" if not slow_connection_mode else "#社畜丼トレンド 低速回線モード")
     if message:
         status_str_lines.append(message)
@@ -132,7 +132,7 @@ if __name__ == '__main__':
     else:
         hour_pair = [hour_end-1, hour_end]
     
-    time_range = time_pair(today, *hour_pair)
+    time_range = get_timepair_from_hourpair(today, *hour_pair)
     
     statuses = timeline.with_time(*time_range, args.db)
     statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     # インタラクティブモードにするのに即投稿したいわけがないので
     # postオプションが指定されたときはパラメータの生成のみを行う
     if args.post:
-        status_params = get_status_params(
+        status_params = get_status_params_for_hourly(
             today, time_range,
             statuses,
             enough,
