@@ -2,6 +2,7 @@ import numpy as np
 
 from wordcloud import WordCloud, ImageColorGenerator
 from natto import MeCab
+from functools import reduce
 
 def mecab_analysis(text):
     import os
@@ -33,7 +34,17 @@ def convert_content(content):
     content = re.sub("　", "", content)
     return content
 
+def chunks(l, n):
+    """Yield successive n-sized chunks from l.
+    https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks"""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
 def wordlist_from_statuses(statuses):
+    return reduce(lambda a, b: a+b,
+                  [__wordlist_from_statuses(ss) for ss in chunks(statuses, 1000)],
+                  [])
+def __wordlist_from_statuses(statuses):
     # 全トゥートを結合して形態素解析に流し込んで単語に分割する
     wordlist = mecab_analysis(' '.join(
         convert_content(get_content_from_status(s)) for s in statuses))
