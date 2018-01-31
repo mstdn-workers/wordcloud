@@ -152,7 +152,10 @@ if __name__ == '__main__':
 
         time_range = get_timepair_from_hourpair(today, *hour_pair)
     elif args.timespan_mode == TimeSpanMode.MONTHLY:
-        pass
+        this_month = jst.localize(datetime(today.year, today.month, 1))
+        yesterday_of_1 = this_month - timedelta(days=1)
+        prev_month = jst.localize(datetime(yesterday_of_1.year, yesterday_of_1.month, 1))
+        time_range = this_month, prev_month
     
     statuses = timeline.with_time(*time_range, args.db)
     statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
