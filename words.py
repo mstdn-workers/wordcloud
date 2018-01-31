@@ -22,6 +22,9 @@ def mecab_analysis(text):
     return output
 
 def get_content_from_status(status):
+    import re
+    if status['account']['username'] == 'fu': # 不適切警察
+        return re.sub(r"^.*事由：([^<]+)<br />.*$", r"\1", status['content'])
     return status['spoiler_text'] or status['content']
 
 def convert_content(content):
