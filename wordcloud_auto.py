@@ -104,6 +104,11 @@ def is_trend(status):
     app = status['application']
     return app['name'] == "D's toot trends App" if app else False
 
+def is_some_bots(status):
+    app = status['application']
+    if not app: return False
+    return any(app['name'] == name for name in ['オフ会カレンダー', 'off_bot', '安価bot'])
+
 def filterfalse_with_count(seq, *preds):
     filter_result = []
     counts = [0] * len(preds)
@@ -118,11 +123,12 @@ def filterfalse_with_count(seq, *preds):
 
 def filter_statuses_with_detail_texts(statuses):
     detail_texts = []
-    statuses, spam_cnt, self_cnt = filterfalse_with_count(statuses, is_spam, is_trend)
+    statuses, spam_cnt, self_cnt, some_cnt = filterfalse_with_count(statuses, is_spam, is_trend, is_some_bots)
     if spam_cnt > 0:
         detail_texts.append(f"スパムとして{spam_cnt}の投稿を除外しました。")
     if self_cnt > 0:
         detail_texts.append(f"社畜丼トレンド自身の{f'{self_cnt}個の' if self_cnt > 1 else ''}投稿を除外しました。")
+    # some_cnt 幾つかのbotの投稿は無言で消し去る
     return statuses, detail_texts
 
 def convert_wordlist(wordlist):
