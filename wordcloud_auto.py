@@ -110,6 +110,9 @@ def is_some_bots(status):
         'オフ会カレンダー', 'off_bot', '安価bot', '色bot', 'ダイスbot'
     ]) if app else False
 
+def is_shindanmaker(s):
+    return "shindanmaker.com" in s['content']
+
 def filterfalse_with_count(seq, *preds):
     filter_result = []
     counts = [0] * len(preds)
