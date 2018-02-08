@@ -107,7 +107,7 @@ def is_spam(status):
 
 def is_trend(status):
     app = status['application']
-    return app['name'] == "D's toot trends App" if app else False
+    return app['name'] == "社畜丼トレンド" if app else False
 
 def is_some_bots(status):
     app = status['application']
