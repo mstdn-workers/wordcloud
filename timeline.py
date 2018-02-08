@@ -76,13 +76,11 @@ def __get_media(media_file):
         media_file.save(img,"PNG")
         return img.getvalue()
 
-def __media_post(media_files):
+def __media_post(media_file):
     description = None
-    if type(media_files) == dict:
-        description = media_files['description']
-        media_file = media_files['media_file']
-    else:
-        media_file = media_files
+    if type(media_file) == dict:
+        description = media_file['description']
+        media_file = media_file['media_file']
     return mastodon.media_post(
         media_file=__get_media(media_file),
         mime_type='image/png',
