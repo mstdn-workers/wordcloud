@@ -35,31 +35,31 @@ def get_wordcount_lines(wordcount):
 def get_status_params_for_hourly(
         today, time_range,
         statuses, enough_words, detail_texts, message,
-        slow_connection_mode, wordcloud=None, wordcount=dict()):
+        slow_connection_mode, wordcloud_image=None, wordcount=dict(), wordcloud_image_with_shindan=None):
     return __get_status_params(
         TimeSpanMode.HOURLY,
         today, time_range,
         statuses, enough_words, detail_texts, message,
-        slow_connection_mode, wordcloud, wordcount
+        slow_connection_mode, wordcloud_image, wordcount,
+        wordcloud_image_with_shindan,
     )
 
 def get_status_params_for_monthly(
         today, time_range,
         statuses, enough_words, detail_texts, message,
-        wordcloud=None, wordcount=dict()):
+        wordcloud_image=None, wordcount=dict()):
     return __get_status_params(
         TimeSpanMode.MONTHLY,
         today, time_range,
         statuses, enough_words, detail_texts, message,
-        slow_connection_mode=False, wordcloud=wordcloud, wordcount=wordcount
+        slow_connection_mode=False, wordcloud_image=wordcloud_image, wordcount=wordcount
     )
 
 def __get_status_params(
         timespan_mode,
         today, time_range,
         statuses, enough_words, detail_texts, message,
-        slow_connection_mode, wordcloud, wordcount):
-    wordcloud_img = '/tmp/wordcloud.png'
+        slow_connection_mode, wordcloud_image, wordcount, wordcloud_image_with_shindan=None):
     if timespan_mode == TimeSpanMode.HOURLY:
         status_str_lines = [get_time_str_for_hourly(time_range)]
         status_str_lines.append("#社畜丼トレンド" if not slow_connection_mode else "#社畜丼トレンド 低速回線モード")
@@ -74,9 +74,13 @@ def __get_status_params(
     if slow_connection_mode and wordcount:
         status_str_lines.extend(get_wordcount_lines(wordcount))
     
+    media_files = [wordcloud_image]
+    if wordcloud_image_with_shindan:
+        media_files.append(wordcloud_image_with_shindan)
+    
     if enough_words:
         status_params = dict(
-            media_file=wordcloud_img,
+            media_files=media_files,
             status="\n".join(status_str_lines)
         )
     else:
@@ -113,6 +117,9 @@ def is_some_bots(status):
 def is_shindanmaker(s):
     return "shindanmaker.com" in s['content']
 
+def is_not_anything(s):
+    return False
+
 def filterfalse_with_count(seq, *preds):
     filter_result = []
     counts = [0] * len(preds)
@@ -125,15 +132,23 @@ def filterfalse_with_count(seq, *preds):
             filter_result.append(item)
     return (filter_result, *counts)
 
-def filter_statuses_with_detail_texts(statuses):
+def filter_statuses_with_detail_texts(statuses, filter_shindanmaker=True):
     detail_texts = []
-    statuses, spam_cnt, self_cnt, some_cnt = filterfalse_with_count(statuses, is_spam, is_trend, is_some_bots)
+    statuses, spam_cnt, self_cnt, shindan_cnt, some_cnt = filterfalse_with_count(
+        statuses,
+        is_spam,
+        is_trend,
+        is_shindanmaker if filter_shindanmaker else is_not_anything,
+        is_some_bots,
+    )
     if spam_cnt > 0:
         detail_texts.append(f"スパムとして{spam_cnt}の投稿を除外しました。")
     if self_cnt > 0:
         detail_texts.append(f"社畜丼トレンド自身の{f'{self_cnt}個の' if self_cnt > 1 else ''}投稿を除外しました。")
+    if shindan_cnt > 0:
+        detail_texts.append(f"診断メーカーの{f'{shindan_cnt}個の' if shindan_cnt > 1 else ''}投稿を除外しました。")
     # some_cnt 幾つかのbotの投稿は無言で消し去る
-    return statuses, detail_texts
+    return statuses, detail_texts, shindan_cnt
 
 def convert_wordlist(wordlist):
     import re
@@ -206,24 +221,41 @@ if __name__ == '__main__':
         time_range = prev_month, this_month
     
     statuses = timeline.with_time(*time_range, args.db)
-    filtered_statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
+    filtered_statuses, detail_texts, shindan_cnt = filter_statuses_with_detail_texts(statuses)
     wordlist = words.wordlist_from_statuses(filtered_statuses)
     wordlist = convert_wordlist(wordlist)
     
     enough = enough_words(wordlist)
     
-    wordcloud, wordcount = None, None
+    wordcloud, wordcount, wordcloud_image = None, None, None
+    wordcloud_with_shindan, wordcloud_image_with_shindan = None, None
     
     if enough:
         if args.timespan_mode == TimeSpanMode.HOURLY:
                 #返ってきたリストを結合してワードクラウドにする
-                wordcloud, wordcount = words.get_wordcloud_from_wordlist_for_hourly(
+                wordcloud, wordcount, wordcloud_image = words.get_wordcloud_from_wordlist_for_hourly(
                     wordlist,
                     slow_connection_mode=args.slow)
         elif args.timespan_mode == TimeSpanMode.MONTHLY:
-            wordcloud, wordcount = words.get_wordcloud_from_wordlist_for_monthly(
+            wordcloud, wordcount, wordcloud_image = words.get_wordcloud_from_wordlist_for_monthly(
                     wordlist,
                     background_image='./redbull.png')
+    
+    if shindan_cnt:
+        if args.timespan_mode == TimeSpanMode.HOURLY:
+            #月次では絶対入ってくるし、診断メーカーの面倒見る気もない！
+            (filtered_statuses_with_shindanmaker,
+             detail_texts_with_shindanmaker,
+             _) = filter_statuses_with_detail_texts(statuses, filter_shindanmaker=False)
+            wordlist_with_shindan = words.wordlist_from_statuses(filtered_statuses_with_shindanmaker)
+            wordlist_with_shindan = convert_wordlist(wordlist_with_shindan)
+
+            enough_with_shindan = enough_words(wordlist_with_shindan)
+            if enough_with_shindan:
+                [wordcloud_with_shindan, _,
+                 wordcloud_image_with_shindan
+                ] = words.get_wordcloud_from_wordlist_for_hourly(
+                    wordlist_with_shindan, slow_connection_mode=args.slow)
     
     # インタラクティブモードにするのに即投稿したいわけがないので
     # postオプションが指定されたときはパラメータの生成のみを行う
@@ -236,7 +268,9 @@ if __name__ == '__main__':
                 detail_texts,
                 args.message,
                 args.slow,
-                wordcloud, wordcount)
+                wordcloud_image, wordcount,
+                wordcloud_image_with_shindan,
+            )
         elif args.timespan_mode == TimeSpanMode.MONTHLY:
             status_params = get_status_params_for_monthly(
                 today, time_range,
@@ -244,7 +278,7 @@ if __name__ == '__main__':
                 enough,
                 detail_texts,
                 args.message,
-                wordcloud, wordcount)
+                wordcloud_image, wordcount)
         
         if not sys.flags.interactive:
             timeline.post(**status_params)
