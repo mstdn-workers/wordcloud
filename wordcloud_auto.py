@@ -203,8 +203,8 @@ if __name__ == '__main__':
         time_range = prev_month, this_month
     
     statuses = timeline.with_time(*time_range, args.db)
-    statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
-    wordlist = words.wordlist_from_statuses(statuses)
+    filtered_statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
+    wordlist = words.wordlist_from_statuses(filtered_statuses)
     wordlist = convert_wordlist(wordlist)
     
     enough = enough_words(wordlist)
@@ -228,7 +228,7 @@ if __name__ == '__main__':
         if args.timespan_mode == TimeSpanMode.HOURLY:
             status_params = get_status_params_for_hourly(
                 today, time_range,
-                statuses,
+                filtered_statuses,
                 enough,
                 detail_texts,
                 args.message,
@@ -237,7 +237,7 @@ if __name__ == '__main__':
         elif args.timespan_mode == TimeSpanMode.MONTHLY:
             status_params = get_status_params_for_monthly(
                 today, time_range,
-                statuses,
+                filtered_statuses,
                 enough,
                 detail_texts,
                 args.message,
