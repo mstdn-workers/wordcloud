@@ -100,12 +100,9 @@ def __get_wordcloud_from_wordlist(wordlist, background_image='background', slow_
     words = wordcloud.process_text(text)
     wordcloud.generate_from_frequencies(words)
     
+    image = wordcloud.to_image()
     if slow_connection_mode:
-        (wordcloud.to_image()
+        image = (image
             .resize((400, 400), resample=Image.BOX)
-            .convert(mode="P", palette=Image.ADAPTIVE, colors=8)
-            .save('/tmp/wordcloud.png'))
-    else:
-        wordcloud.to_file("/tmp/wordcloud.png")
-    
-    return wordcloud, words
+            .convert(mode="P", palette=Image.ADAPTIVE, colors=8))
+    return wordcloud, words, image
