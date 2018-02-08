@@ -1,8 +1,12 @@
+import io
+import PIL
 from mastodon import Mastodon
 
 #Mastodon.create_app("D's toot trends App", api_base_url = "https://mstdn-workers.com", to_file = "my_clientcred_workers.txt")
 #mastodon = Mastodon(client_id="my_clientcred_workers.txt",api_base_url = "https://mstdn-workers.com")
 #mastodon.log_in("mail address", "passwd",to_file = "my_usercred_workers.txt")
+
+
 mastodon = Mastodon(
     client_id="my_clientcred_workers.txt",
     access_token="my_usercred_workers.txt",
@@ -64,9 +68,31 @@ def __with_time_fallback(time_begin, time_end):
         sleep(1.5)
     return list(reversed(tl_))
 
-def post(status, media_file=None, spoiler_text=None, mime_type=None):
-    if media_file:
-        media_file = mastodon.media_post(media_file=media_file, mime_type=mime_type)
-        return mastodon.status_post(status=status, media_ids=[media_file], spoiler_text=spoiler_text)
+def __get_media(media_file):
+    if type(media_file) == str: # this is filepath
+        return open(media_file, 'rb')
+    if isinstance(media_file, PIL.Image.Image):
+        img = io.BytesIO()
+        media_file.save(img,"PNG")
+        return img.getvalue()
+
+def __media_post(media_files):
+    description = None
+    if type(media_files) == dict:
+        description = media_files['description']
+        media_file = media_files['media_file']
     else:
-        return mastodon.status_post(status=status, spoiler_text=spoiler_text)
+        media_file = media_files
+    return mastodon.media_post(
+        media_file=__get_media(media_file),
+        mime_type='image/png',
+        description=description)
+
+def post(status, media_files=None, spoiler_text=None):
+    media_ids = None
+    if media_files:
+        if type(media_files) == list:
+            media_ids = [__media_post(media_file) for media_file in media_files]
+        else:
+            media_ids = [__media_post(media_files)]
+    return mastodon.status_post(status=status, media_ids=media_ids, spoiler_text=spoiler_text)
