@@ -60,29 +60,30 @@ def __get_status_params(
         today, time_range,
         statuses, enough_words, detail_texts, message,
         slow_connection_mode, wordcloud_image, wordcount, wordcloud_image_with_shindan=None):
+    status_str_lines_logs = detail_texts
     if timespan_mode == TimeSpanMode.HOURLY:
-        status_str_lines = [get_time_str_for_hourly(time_range)]
-        status_str_lines.append("#社畜丼トレンド" if not slow_connection_mode else "#社畜丼トレンド 低速回線モード")
+        status_str_lines_header = [get_time_str_for_hourly(time_range)]
+        status_str_lines_header.append("#社畜丼トレンド" if not slow_connection_mode else "#社畜丼トレンド 低速回線モード")
     elif timespan_mode == TimeSpanMode.MONTHLY:
-        status_str_lines = [get_time_str_for_monthly(time_range)]
-        status_str_lines.append("#社畜丼トレンド")
-        status_str_lines.append("#月刊トレンド")
-    if message:
-        status_str_lines.append(message)
-    status_str_lines.extend(detail_texts)
-    status_str_lines.append(f"{len(statuses)} の投稿を処理しました。")
+        status_str_lines_header = [get_time_str_for_monthly(time_range)]
+        status_str_lines_header.append("#社畜丼トレンド")
+        status_str_lines_header.append("#月刊トレンド")
+    status_str_lines_logs.append(f"{len(statuses)} の投稿を処理しました。")
     if slow_connection_mode and wordcount:
-        status_str_lines.extend(get_wordcount_lines(wordcount))
+        status_str_lines_logs.extend(get_wordcount_lines(wordcount))
     
     media_files = [wordcloud_image]
     if wordcloud_image_with_shindan:
         media_files.append(wordcloud_image_with_shindan)
     
     if enough_words:
-        status_params = dict(
+        status_params = [dict(
             media_files=media_files,
-            status="\n".join(status_str_lines)
-        )
+            status="\n".join(status_str_lines_header + ([message] if message else []))
+        ), dict(
+            spoiler_text="\n".join(status_str_lines_header),
+            status="\n".join(status_str_lines_logs)
+        )]
     else:
         status_str_lines.append("トレンド画像を生成するために充分な単語数がありません")
         status_params = dict(
@@ -281,4 +282,8 @@ if __name__ == '__main__':
                 wordcloud_image, wordcount)
         
         if not sys.flags.interactive:
-            timeline.post(**status_params)
+            if type(status_params) == list:
+                for s_params in status_params:
+                    timeline.post(**s_params)
+            else:
+                timeline.post(**status_params)
