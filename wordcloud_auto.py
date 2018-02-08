@@ -106,8 +106,9 @@ def is_trend(status):
 
 def is_some_bots(status):
     app = status['application']
-    if not app: return False
-    return any(app['name'] == name for name in ['オフ会カレンダー', 'off_bot', '安価bot'])
+    return any(app['name'] == name for name in [
+        'オフ会カレンダー', 'off_bot', '安価bot', '色bot', 'ダイスbot'
+    ]) if app else False
 
 def filterfalse_with_count(seq, *preds):
     filter_result = []
