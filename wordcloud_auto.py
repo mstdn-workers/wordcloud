@@ -61,6 +61,8 @@ def __get_status_params(
         statuses, enough_words, detail_texts, message,
         slow_connection_mode, wordcloud_image, wordcount, wordcloud_image_with_shindan=None):
     status_str_lines_logs = detail_texts
+    status_count = len(statuses)
+    user_count = len(set(s.account.username for s in statuses))
     if timespan_mode == TimeSpanMode.HOURLY:
         status_str_lines_header = [get_time_str_for_hourly(time_range)]
         status_str_lines_header.append("#社畜丼トレンド" if not slow_connection_mode else "#社畜丼トレンド 低速回線モード")
@@ -68,7 +70,7 @@ def __get_status_params(
         status_str_lines_header = [get_time_str_for_monthly(time_range)]
         status_str_lines_header.append("#社畜丼トレンド")
         status_str_lines_header.append("#月刊トレンド")
-    status_str_lines_logs.append(f"{len(set(s.account.username for s in statuses))}ユーザの{len(statuses)} の投稿を処理しました。")
+    status_str_lines_logs.append(f"{user_count}ユーザの{status_count} の投稿を処理しました。")
     if slow_connection_mode and wordcount:
         status_str_lines_logs.extend(get_wordcount_lines(wordcount))
     
