@@ -68,7 +68,7 @@ def __get_status_params(
         status_str_lines_header = [get_time_str_for_monthly(time_range)]
         status_str_lines_header.append("#社畜丼トレンド")
         status_str_lines_header.append("#月刊トレンド")
-    status_str_lines_logs.append(f"{len(statuses)} の投稿を処理しました。")
+    status_str_lines_logs.append(f"{len(set(s.account.username for s in statuses))}ユーザの{len(statuses)} の投稿を処理しました。")
     if slow_connection_mode and wordcount:
         status_str_lines_logs.extend(get_wordcount_lines(wordcount))
     
