@@ -6,6 +6,7 @@ import timeline
 from enum import Enum, auto
 from datetime import datetime, timedelta, date
 import pytz
+from operator import itemgetter
 
 def get_timepair_from_hourpair(today, hour_begin, hour_end):
     return tuple(today+timedelta(hours=h) for h in [hour_begin, hour_end])
@@ -23,7 +24,6 @@ def get_time_str_for_monthly(time_range):
     return ' - '.join(t.strftime('%Y/%m/%d') for t in time_range)
 
 def get_wordcount_lines(wordcount):
-    from operator import itemgetter
     return (
         "出現回数の多かった単語は以下の通りです：",
         *(f'  "{word}": {cnt}'
@@ -71,6 +71,13 @@ def __get_status_params(
         status_str_lines_header.append("#社畜丼トレンド")
         status_str_lines_header.append("#月刊トレンド")
     status_str_lines_logs.append(f"{user_count}ユーザの{status_count} の投稿を処理しました。")
+    top_word, top_word_num = sorted(wordcount.items(), key=itemgetter(1), reverse=True)[0]
+    
+    short_log = [" / ".join((
+        f"{user_count} user{'s' if user_count > 1 else ''}",
+        f"{status_count} status{'es' if status_count > 1 else ''}",
+        f'"{top_word}": {top_word_num}'
+    ))]
     if slow_connection_mode and wordcount:
         status_str_lines_logs.extend(get_wordcount_lines(wordcount))
     
@@ -81,7 +88,7 @@ def __get_status_params(
     if enough_words:
         status_params = [dict(
             media_files=media_files,
-            status="\n".join(status_str_lines_header + ([message] if message else []))
+            status="\n".join(status_str_lines_header + ([message] if message else []) + short_log)
         ), dict(
             spoiler_text="\n".join(status_str_lines_header),
             status="\n".join(status_str_lines_logs)
