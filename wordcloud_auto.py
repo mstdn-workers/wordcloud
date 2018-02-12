@@ -94,9 +94,9 @@ def __get_status_params(
             status="\n".join(status_str_lines_logs)
         )]
     else:
-        status_str_lines.append("トレンド画像を生成するために充分な単語数がありません")
+        status_str_lines_header.append("トレンド画像を生成するために充分な単語数がありません")
         status_params = dict(
-            status="\n".join(status_str_lines)
+            status="\n".join(status_str_lines_header)
         )
     return status_params
 
