@@ -71,13 +71,14 @@ def __get_status_params(
         status_str_lines_header.append("#社畜丼トレンド")
         status_str_lines_header.append("#月刊トレンド")
     status_str_lines_logs.append(f"{user_count}ユーザの{status_count} の投稿を処理しました。")
-    top_word, top_word_num = sorted(wordcount.items(), key=itemgetter(1), reverse=True)[0]
-    
-    short_log = [" / ".join((
-        f"{user_count} user{'s' if user_count > 1 else ''}",
-        f"{status_count} status{'es' if status_count > 1 else ''}",
-        f'"{top_word}": {top_word_num}'
-    ))]
+    if wordcount:
+        top_word, top_word_num = sorted(wordcount.items(), key=itemgetter(1), reverse=True)[0]
+        short_log = [" / ".join((
+            f"{user_count} user{'s' if user_count > 1 else ''}",
+            f"{status_count} status{'es' if status_count > 1 else ''}",
+            f'"{top_word}": {top_word_num}'
+        ))]
+
     if slow_connection_mode and wordcount:
         status_str_lines_logs.extend(get_wordcount_lines(wordcount))
     
