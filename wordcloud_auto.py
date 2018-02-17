@@ -107,7 +107,7 @@ def zen_alnum_normalize(c):
     return c
 
 def is_spam(status):
-    spam_accounts = ['yukimama', 'ryosuketeraoka']
+    spam_accounts = ['yukimama', 'ryosuketeraoka', "FreeEdifier"]
     spam_account_name_suffix = [
         '_info', '_infom', '_information', '_material',
     ]
