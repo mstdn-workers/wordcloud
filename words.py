@@ -26,6 +26,8 @@ def get_content_from_status(status):
     import re
     if status['account']['username'] == 'fu': # 不適切警察
         return re.sub(r"^.*事由：([^<]+)<br />.*$", r"\1", status['content'])
+    if status['account']['username'] == 'v_idol_retia': # れてぃあたん
+        return status['content'].replace("#<span>れてぃあたん</span>", "")
     return status['spoiler_text'] or status['content']
 
 def convert_content(content):
