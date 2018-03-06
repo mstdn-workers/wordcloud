@@ -3,19 +3,23 @@ import numpy as np
 from wordcloud import WordCloud, ImageColorGenerator
 from natto import MeCab
 from functools import reduce
+import os
+
+mecab_flags = [
+    f'-d {os.popen("mecab-config --dicdir").read().strip()}/mecab-ipadic-neologd/',
+    '-u username.dic',
+]
+mecab_flags_str = ' '.join(mecab_flags)
+__mecab_t = None
 
 def mecab_analysis(text):
-    import os
-    mecab_flags = [
-        f'-d {os.popen("mecab-config --dicdir").read().strip()}/mecab-ipadic-neologd/',
-        '-u username.dic',
-    ]
-    t = MeCab(' '.join(mecab_flags))
+    global __mecab_t
+    __mecab_t = __mecab_t or MeCab(mecab_flags_str)
     enc_text = text.strip() # MeCabに渡した文字列は必ず変数に入れておく https://shogo82148.github.io/blog/2012/12/15/mecab-python/
-    t.parse('') # UnicodeDecodeError対策 http://taka-say.hateblo.jp/entry/2015/06/24/183748 
+    __mecab_t.parse('') # UnicodeDecodeError対策 http://taka-say.hateblo.jp/entry/2015/06/24/183748
     # node = t.parseToNode(enc_text)
     output = []
-    for node in t.parse(enc_text, as_nodes=True):
+    for node in __mecab_t.parse(enc_text, as_nodes=True):
         if node.surface != "":  # ヘッダとフッタを除外
             word_type = node.feature.split(",")[0]
             if word_type in ["形容詞", "名詞", "副詞"]:
