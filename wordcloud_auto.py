@@ -122,7 +122,7 @@ def is_trend(status):
 def is_some_bots(status):
     app = status['application']
     return any(app['name'] == name for name in [
-        'オフ会カレンダー', 'off_bot', '安価bot', '色bot', 'ダイスbot'
+        'オフ会カレンダー', 'off_bot', '安価bot', '色bot', 'ダイスbot', '33_4'
     ]) if app else False
 
 def is_shindanmaker(s):
