@@ -60,7 +60,7 @@ def __get_status_params(
         today, time_range,
         statuses, enough_words, detail_texts, message,
         slow_connection_mode, wordcloud_image, wordcount, wordcloud_image_with_shindan=None):
-    status_str_lines_logs = detail_texts
+    status_str_lines_logs = detail_texts[:]
     status_count = len(statuses)
     user_count = len(set(s.account.username for s in statuses))
     if timespan_mode == TimeSpanMode.HOURLY:
@@ -79,7 +79,7 @@ def __get_status_params(
             f'"{top_word}": {top_word_num}'
         ))]
 
-    if slow_connection_mode and wordcount:
+    if (slow_connection_mode or timespan_mode == TimeSpanMode.MONTHLY) and wordcount:
         status_str_lines_logs.extend(get_wordcount_lines(wordcount))
     
     media_files = [wordcloud_image]
