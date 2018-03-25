@@ -32,6 +32,9 @@ def get_content_from_status(status):
         return re.sub(r"^.*事由：([^<]+)<br />.*$", r"\1", status['content'])
     if status['account']['username'] == 'v_idol_retia': # れてぃあたん
         return status['content'].replace("#<span>れてぃあたん</span>", "")
+    if status['account']['username'] == 'v_rurigaki_ren': # 漣ちゃん
+        if "天気予報" in (status['spoiler_text'] or status['content']):
+            return ""
     return status['spoiler_text'] or status['content']
 
 def convert_content(content):
