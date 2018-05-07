@@ -128,6 +128,8 @@ def is_some_bots(status):
         '色bot',
         'ダイスbot',
         '33_4',
+        'h_countdown', # 平成終了カウントダウンBOT（仮）
+        'sedai no owari', # @SEDAI_NO_OWARI なんで平成終了カウントダウンbotが二種類もあるんです……？
     ]) if app else False
 
 def is_shindanmaker(s):
