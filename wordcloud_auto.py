@@ -150,14 +150,27 @@ def filterfalse_with_count(seq, *preds):
             filter_result.append(item)
     return (filter_result, *counts)
 
-def filter_statuses_with_detail_texts(statuses, filter_shindanmaker=True):
+def load_blacklist(blacklist):
+    if blacklist:
+        with open(blacklist, "r") as f:
+            lines = [l.strip() for l in f.readlines()]
+        def on_blacklist(status):
+            username = status['account']['username']
+            return username in lines
+        return on_blacklist
+    else:
+        return is_not_anything
+
+def filter_statuses_with_detail_texts(statuses, filter_shindanmaker=True, blacklist=None):
     detail_texts = []
-    statuses, spam_cnt, self_cnt, shindan_cnt, some_cnt = filterfalse_with_count(
+    on_blacklist = load_blacklist(blacklist)
+    statuses, spam_cnt, self_cnt, shindan_cnt, some_cnt, blacklisted = filterfalse_with_count(
         statuses,
         is_spam,
         is_trend,
         is_shindanmaker if filter_shindanmaker else is_not_anything,
         is_some_bots,
+        on_blacklist,
     )
     if spam_cnt > 0:
         detail_texts.append(f"スパムとして{spam_cnt}の投稿を除外しました。")
@@ -187,6 +200,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--db', '--use-database', metavar='DATABASE',
                         help='get statuses from database; DATABASE is path to sqlite3 database file like "/db/timeline.sqlite3"')
+    parser.add_argument('-b', '--blacklist', metavar='BLACKLIST',
+                        help='filter statuses with BLACKLIST; BLACKLIST is path to csv file like "/db/blacklist.csv"')
     parser.add_argument('--post', action='store_true',
                         help="to post status if not interactive-mode else to generate status_params only")
     parser.add_argument('--message', help="additional message")
@@ -239,7 +254,9 @@ if __name__ == '__main__':
         time_range = prev_month, this_month
     
     statuses = timeline.with_time(*time_range, args.db)
-    filtered_statuses, detail_texts, shindan_cnt = filter_statuses_with_detail_texts(statuses)
+    filter_shindan = True
+    filtered_statuses, detail_texts, shindan_cnt = filter_statuses_with_detail_texts(
+        statuses, filter_shindan, args.blacklist)
     wordlist = words.wordlist_from_statuses(filtered_statuses)
     wordlist = convert_wordlist(wordlist)
     
@@ -264,7 +281,7 @@ if __name__ == '__main__':
             #月次では絶対入ってくるし、診断メーカーの面倒見る気もない！
             (filtered_statuses_with_shindanmaker,
              detail_texts_with_shindanmaker,
-             _) = filter_statuses_with_detail_texts(statuses, filter_shindanmaker=False)
+             _) = filter_statuses_with_detail_texts(statuses, filter_shindanmaker=False, blacklist=args.blacklist)
             wordlist_with_shindan = words.wordlist_from_statuses(filtered_statuses_with_shindanmaker)
             wordlist_with_shindan = convert_wordlist(wordlist_with_shindan)
 
