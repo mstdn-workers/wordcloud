@@ -106,6 +106,17 @@ def zen_alnum_normalize(c):
     if "Ａ" <= c <= "ｚ": return chr(ord(c) - ord("Ａ") + ord('A'))
     return c
 
+def begginer_with_url(status):
+    import re
+    content = status.content
+    a = status['account']
+    missing_avatar_url = 'https://mstdn-workers.com/avatars/original/missing.png'
+    content = re.sub('<[^>]*>', '', content)
+    contain_url = re.search(r'https?://[^ ]+', content)
+    no_display_name = not a['display_name']
+    no_avatar = a['avatar'] == missing_avatar_url
+    return no_avatar and no_display_name and contain_url
+
 def is_spam(status):
     spam_accounts = ['yukimama', 'ryosuketeraoka', "FreeEdifier", "chimasawgn"]
     spam_account_name_suffix = [
@@ -113,6 +124,7 @@ def is_spam(status):
     ]
     username = status['account']['username']
     return username in spam_accounts or \
+        begginer_with_url(status) or \
         any(username.lower().endswith(sfx) for sfx in spam_account_name_suffix)
 
 def is_trend(status):
